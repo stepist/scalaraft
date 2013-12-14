@@ -26,9 +26,22 @@ class LogEntryLevelDBJava(val dbName:String,val dbRootPath:String=null) extends 
   type ReverseIdx = Long
   type ReverseIdxBytes = Array[Byte]
 
+  case class CKey(key:Array[Byte] )
+  case class CIndex(index:Long)
+  case class CReverseIdx(reverseIdx:ReverseIdx)
+
+  implicit def fromIndexToCKey(index:CIndex):CKey= CKey(getReverseIdxBytesFromIndex(index.index))
+
+
+
+
 
   val logEntrySomething:LogEntry=null
   val longSomething=0
+  val le:LogEntry=null
+
+  type IterInit = (DBIterator) => Unit
+  type IterExec[T] = (List[T],DBIterator)=> List[T]
 
 
   def getReverseIdxBytesFromIndex(index:Long):ReverseIdxBytes = ByteBuffer.allocate(8).putLong(getReverseIdxFromIndex(index)).array()
@@ -61,8 +74,7 @@ class LogEntryLevelDBJava(val dbName:String,val dbRootPath:String=null) extends 
   }
 
   def appendEntry(logEntry:LogEntry){
-    val idx=getReverseIdxFromIndex(logEntry.index)
-    val key = getReverseIdxBytesFromIndex(idx)
+    val key = getReverseIdxBytesFromIndex(logEntry.index)
     db.put(key, logEntry.pickle.value , writeOption)
   }
 
@@ -86,10 +98,11 @@ class LogEntryLevelDBJava(val dbName:String,val dbRootPath:String=null) extends 
     val key = getReverseIdxBytesFromIndex(index)
     val re=db.get(key)
     if (re==null) return None
-    Some(unPickle[LogEntry](re,logEntrySomething))
+    Some(unPickle(re,logEntrySomething))
   }
 
   def unPickle[T:Unpickler:FastTypeTag](data:Array[Byte],t:T):T = binary.toBinaryPickle(data).unpickle[T]
+  def unPickle[T:Unpickler:FastTypeTag](data:Array[Byte]):T = binary.toBinaryPickle(data).unpickle[T]
 
   //def unPickle2(data:Array[Byte]):LogEntry = binary.toBinaryPickle(data).unpickle[LogEntry]
 
@@ -126,12 +139,31 @@ class LogEntryLevelDBJava(val dbName:String,val dbRootPath:String=null) extends 
       }
       Some(list)
     }
+
+    def iterate222[A](n:Int, initExec: DBIterator=>Unit,  exec: (List[A],DBIterator)=> List[A]):Option[List[A]] ={
+      if (n<0) return None
+
+      var list: List[A]=List[A]()
+      try{
+        initExec(iterator)
+        var count=0
+        while(iterator.hasNext() && count<n){
+          list=exec(list,iterator)
+          iterator.next()
+          count+=1
+        }
+      } finally {
+        iterator.close()
+      }
+      Some(list)
+    }
   }
 
 
 
   def getLastN2(n:Int):Option[List[LogEntry]]={
-    db.iterator iterate(  n, _.seekToFirst(), (x:List[LogEntry],it) =>{ x :+ unPickle[LogEntry](it.peekNext().getValue,logEntrySomething) } )
+    val exec:IterExec[LogEntry] = (x,it) =>{ x :+ unPickle[LogEntry](it.peekNext().getValue) }
+    db.iterator iterate(  n, _.seekToFirst(),exec )
   }
 
   def getLastN(n:Int):Option[List[LogEntry]]={
@@ -183,8 +215,7 @@ class LogEntryLevelDBJava(val dbName:String,val dbRootPath:String=null) extends 
     Some(logEntries)
   }
 
-  type IterInit = (DBIterator) => Unit
-  type IterExec[T] = (List[T],DBIterator)=> List[T]
+
 
   def getLastIndex2():Option[Long]={
     val exec:IterExec[Long] = (x,it) =>{ x :+ unPickle[Long](it.peekNext().getKey,longSomething) }

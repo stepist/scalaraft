@@ -2,15 +2,14 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="2d20172a-4920-4f11-b28a-428547c6bb6f" name="Default" comment="">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/main/scala/jkm/cineclub/raft/LogEntryDB.scala" afterPath="$PROJECT_DIR$/src/main/scala/jkm/cineclub/raft/LogEntryDB.scala" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/main/scala/jkm/cineclub/raft/LogEntryLevelDBJava.scala" afterPath="$PROJECT_DIR$/src/main/scala/jkm/cineclub/raft/LogEntryLevelDBJava.scala" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
     </list>
     <ignored path="scalaraft.iws" />
     <ignored path=".idea/workspace.xml" />
     <file path="$PROJECT_DIR$/.idea/modules.xml" changelist="2d20172a-4920-4f11-b28a-428547c6bb6f" time="1387005163848" ignored="false" />
-    <file path="/Dummy.txt" changelist="2d20172a-4920-4f11-b28a-428547c6bb6f" time="1387013274677" ignored="false" />
-    <file path="/LogEntryLevelDBJava.scala" changelist="2d20172a-4920-4f11-b28a-428547c6bb6f" time="1387015031520" ignored="false" />
+    <file path="/Dummy.txt" changelist="2d20172a-4920-4f11-b28a-428547c6bb6f" time="1387015064956" ignored="false" />
+    <file path="/LogEntryLevelDBJava.scala" changelist="2d20172a-4920-4f11-b28a-428547c6bb6f" time="1387017378211" ignored="false" />
     <file path="/LogEntryDB.scala" changelist="2d20172a-4920-4f11-b28a-428547c6bb6f" time="1387014776021" ignored="false" />
     <option name="TRACKING_ENABLED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -84,7 +83,7 @@
       <file leaf-file-name="LogEntryLevelDBJava.scala" pinned="false" current="true" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/main/scala/jkm/cineclub/raft/LogEntryLevelDBJava.scala">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="88" column="48" selection-start="2437" selection-end="2454" vertical-scroll-proportion="0.6885246">
+            <state line="33" column="2" selection-start="893" selection-end="893" vertical-scroll-proportion="-0.04918033">
               <folding>
                 <element signature="e#28#53#0" expanded="true" />
               </folding>
@@ -408,7 +407,11 @@
       <created>1387013281511</created>
       <updated>1387013281511</updated>
     </task>
-    <option name="localTasksCounter" value="3" />
+    <task id="LOCAL-00003" summary="...">
+      <created>1387015073328</created>
+      <updated>1387015073328</updated>
+    </task>
+    <option name="localTasksCounter" value="4" />
     <servers />
   </component>
   <component name="ToolWindowManager">
@@ -520,7 +523,7 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/main/scala/jkm/cineclub/raft/LogEntryLevelDBJava.scala">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="88" column="48" selection-start="2437" selection-end="2454" vertical-scroll-proportion="0.6885246">
+        <state line="33" column="2" selection-start="893" selection-end="893" vertical-scroll-proportion="-0.04918033">
           <folding>
             <element signature="e#28#53#0" expanded="true" />
           </folding>
