@@ -42,6 +42,7 @@ class LogEntryLevelDB(val dbName:String,val dbRootPath:String=null) extends LogE
   def dbGet(ckey:CKey)=db.get(ckey.key)
 
 
+
   def iterSeekToLast(iter:DBIterator) = iter.seekToFirst
   def iterSeek(iter:DBIterator,ckey:CKey) = iter.seek(ckey.key)
   def iterPrev(iter:DBIterator) = iter.next
@@ -54,54 +55,8 @@ class LogEntryLevelDB(val dbName:String,val dbRootPath:String=null) extends LogE
   def batchDelete(batch:WriteBatch,ckey:CKey)= batch.delete(ckey.key)
   def batchPut(batch:WriteBatch,ckey:CKey,value:Array[Byte])= batch.put(ckey.key,value)
 
-
-
-
-  def deleteEntry(index:Index)=dbDelete(index)
-
-  def deleteFrom(index:Index){
-    val lastIndexSomething = getLastIndex()
-    if (lastIndexSomething.isEmpty) return
-    if (index > lastIndexSomething.get) return
-
-    db.createWriteBatch iterate( (index to lastIndexSomething.get).toList , (b,i:Index)=>batchDelete(b,i) )
-  }
-
-  def appendEntry(logEntry:LogEntry)=dbPut(logEntry.index,doPickle(logEntry))
-
-  def appendEntries(logEntries : List[LogEntry]) = db.createWriteBatch iterate( logEntries, (b,e:LogEntry)=>batchPut(b,e.index, doPickle(e)) )
-
-  def getEntry(index:Index) : Option[LogEntry] = {
-    val entryBytes=dbGet(index)
-    if (entryBytes==null) None else Some(unPickle[LogEntry](entryBytes))
-  }
-
-  def getLast():Option[LogEntry]={
-    val exec:IterExec[LogEntry] = (x,it) =>{ x :+ unPickle[LogEntry](iterPeekPrev(it).getValue) }
-    db.iterator iterateBack(  1, iterSeekToLast(_),exec ) map(_.head)
-  }
-
-  def getLastN(n:Int):Option[List[LogEntry]]={
-    val exec:IterExec[LogEntry] = (x,it) =>{ x :+ unPickle[LogEntry](iterPeekPrev(it).getValue) }
-    db.iterator iterateBack(  n, iterSeekToLast(_),exec )
-  }
-
-  def getLastNFrom(n:Int,index:Index):Option[List[LogEntry]]={
-    val exec:IterExec[LogEntry] = (x,it) =>{ x :+ unPickle[LogEntry](iterPeekPrev(it).getValue) }
-    db.iterator iterateBack( n,iterSeek(_,index), exec )
-  }
-
-  def getLastIndex():Option[Long]={
-    val exec:IterExec[Long] = (x,it) =>{ x :+ unPickle[Long](iterPeekPrev(it).getKey) }
-    db.iterator iterateBack (1, iterSeekToLast(_),exec) map(_.head)
-  }
-
-  def close = db.close
-
-
-
   implicit class BatchIteration(val batch:WriteBatch) {
-    def iterate[A](list:List[A],exec:(WriteBatch,A) => Unit ){
+    def batchOp[A](list:List[A],exec:(WriteBatch,A) => Unit ){
       try {
         for(item<-list) exec(batch,item)
         db.write(batch,writeOption)
@@ -110,7 +65,6 @@ class LogEntryLevelDB(val dbName:String,val dbRootPath:String=null) extends LogE
       }
     }
   }
-
 
   implicit class levelDBIteration(val iterator:DBIterator) {
     def iterateBack[A](n:Int, initExec: DBIterator=>Unit,  exec: (List[A],DBIterator)=> List[A]):Option[List[A]] ={
@@ -131,25 +85,34 @@ class LogEntryLevelDB(val dbName:String,val dbRootPath:String=null) extends LogE
       }
       Some(list)
     }
-
-    def iterateForward[A](n:Int, initExec: DBIterator=>Unit,  exec: (List[A],DBIterator)=> List[A]):Option[List[A]] ={
-      if (n<0) return None
-
-      var list: List[A]=List[A]()
-      try{
-        initExec(iterator)
-        var count=0
-        while(iterHasNext(iterator) && count<n){
-          list=exec(list,iterator)
-          iterNext(iterator)
-          count+=1
-        }
-      } finally {
-        iterator.close()
-      }
-      Some(list)
-    }
   }
+
+  def deleteEntry(index:Index)=dbDelete(index)
+
+  def deleteFrom(index:Index) =
+    for(lastIndex<-getLastIndex())
+      if (index <= lastIndex) db.createWriteBatch batchOp( (index to lastIndex).toList , (btc,idx:Index)=>batchDelete(btc,idx) )
+
+  def appendEntry(logEntry:LogEntry)=dbPut(logEntry.index,doPickle(logEntry))
+
+  def appendEntries(logEntries : List[LogEntry]) = db.createWriteBatch batchOp( logEntries, (btc,e:LogEntry)=>batchPut(btc,e.index, doPickle(e)) )
+
+  def getEntry(index:Index) : Option[LogEntry] = Some(unPickle[LogEntry](dbGet(index)))
+
+  val execIterPeekPrevGetValue:IterExec[LogEntry] = (x,it) =>{ x :+ unPickle[LogEntry](iterPeekPrev(it).getValue) }
+  val execIterPeekPrevGetKey:IterExec[Long] = (x,it) =>{ x :+ unPickle[Long](iterPeekPrev(it).getKey) }
+
+  def getLast():Option[LogEntry] = db.iterator iterateBack( 1, iterSeekToLast(_), execIterPeekPrevGetValue) map(_.head)
+
+  def getLastN(n:Int):Option[List[LogEntry]] = db.iterator iterateBack( n, iterSeekToLast(_), execIterPeekPrevGetValue)
+
+  def getLastNFrom(n:Int,index:Index):Option[List[LogEntry]] = db.iterator iterateBack( n, iterSeek(_,index), execIterPeekPrevGetValue)
+
+  def getLastIndex():Option[Long] = db.iterator iterateBack ( 1, iterSeekToLast(_), execIterPeekPrevGetKey) map(_.head)
+
+
+  def close = db.close
+
 }
 
 
