@@ -8,8 +8,8 @@
     <ignored path="scalaraft.iws" />
     <ignored path=".idea/workspace.xml" />
     <file path="$PROJECT_DIR$/.idea/modules.xml" changelist="2d20172a-4920-4f11-b28a-428547c6bb6f" time="1387005163848" ignored="false" />
-    <file path="/Dummy.txt" changelist="2d20172a-4920-4f11-b28a-428547c6bb6f" time="1387015064956" ignored="false" />
-    <file path="/LogEntryLevelDBJava.scala" changelist="2d20172a-4920-4f11-b28a-428547c6bb6f" time="1387017378211" ignored="false" />
+    <file path="/Dummy.txt" changelist="2d20172a-4920-4f11-b28a-428547c6bb6f" time="1387017511386" ignored="false" />
+    <file path="/LogEntryLevelDBJava.scala" changelist="2d20172a-4920-4f11-b28a-428547c6bb6f" time="1387018151637" ignored="false" />
     <file path="/LogEntryDB.scala" changelist="2d20172a-4920-4f11-b28a-428547c6bb6f" time="1387014776021" ignored="false" />
     <option name="TRACKING_ENABLED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -83,7 +83,7 @@
       <file leaf-file-name="LogEntryLevelDBJava.scala" pinned="false" current="true" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/main/scala/jkm/cineclub/raft/LogEntryLevelDBJava.scala">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="33" column="2" selection-start="893" selection-end="893" vertical-scroll-proportion="-0.04918033">
+            <state line="52" column="92" selection-start="1618" selection-end="1618" vertical-scroll-proportion="0.07377049">
               <folding>
                 <element signature="e#28#53#0" expanded="true" />
               </folding>
@@ -411,7 +411,11 @@
       <created>1387015073328</created>
       <updated>1387015073328</updated>
     </task>
-    <option name="localTasksCounter" value="4" />
+    <task id="LOCAL-00004" summary="...">
+      <created>1387017517861</created>
+      <updated>1387017517861</updated>
+    </task>
+    <option name="localTasksCounter" value="5" />
     <servers />
   </component>
   <component name="ToolWindowManager">
@@ -523,7 +527,7 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/main/scala/jkm/cineclub/raft/LogEntryLevelDBJava.scala">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="33" column="2" selection-start="893" selection-end="893" vertical-scroll-proportion="-0.04918033">
+        <state line="52" column="92" selection-start="1618" selection-end="1618" vertical-scroll-proportion="0.07377049">
           <folding>
             <element signature="e#28#53#0" expanded="true" />
           </folding>

@@ -19,7 +19,7 @@ import scala.Some
  */
 class LogEntryLevelDBJava(val dbName:String,val dbRootPath:String=null) extends LogEntryDB  {
   val db :DB = factory.open(new File(dbRootPath,dbName), new Options())
-  val writeOption=new WriteOptions().sync(true)
+  implicit val writeOption=new WriteOptions().sync(true)
 
   import LogEntryDB._
 
@@ -30,8 +30,8 @@ class LogEntryLevelDBJava(val dbName:String,val dbRootPath:String=null) extends 
   case class CIndex(index:Long)
   case class CReverseIdx(reverseIdx:ReverseIdx)
 
-  implicit def fromIndexToCKey(index:CIndex):CKey= CKey(getReverseIdxBytesFromIndex(index.index))
-
+  implicit def fromCIndexToCKey(index:CIndex):CKey= CKey(getReverseIdxBytesFromIndex(index.index))
+  implicit def fromIndexToCKey(index:Long):CKey= CKey(getReverseIdxBytesFromIndex(index))
 
 
 
@@ -49,10 +49,14 @@ class LogEntryLevelDBJava(val dbName:String,val dbRootPath:String=null) extends 
   def getReverseIdxFromIndex(index:Long)= Long.MaxValue-index
 
 
-  def deleteEntry(index:Long){
-    val key = getReverseIdxBytesFromIndex(index)
-    db.delete(key,writeOption)
-  }
+  def dbDelete(ckey:CKey)(implicit options:WriteOptions) =  db.delete(ckey.key,options)
+  def dbPut(ckey:CKey , value:Array[Byte])(implicit options:WriteOptions) =db.put(ckey.key, value , writeOption)
+
+
+
+
+  def deleteEntry(index:Long)=dbDelete(index)
+
 
   def deleteFrom(index:Long){
     val lastIndexSomething = getLastIndex()
