@@ -1,13 +1,14 @@
 package jkm.cineclub.raft
 
 
-import org.iq80.leveldb.{WriteBatch, WriteOptions, Options, DB}
+import org.iq80.leveldb._
 import org.iq80.leveldb.impl.Iq80DBFactory._
-import scala.Some
+import scala._
 import java.io.File
 import java.nio.ByteBuffer
 import scala.pickling._
 import binary._
+import scala.Some
 
 /**
  * Created with IntelliJ IDEA.
@@ -85,7 +86,10 @@ class LogEntryLevelDBJava(val dbName:String,val dbRootPath:String=null) extends 
     Some(unPickle(re))
   }
 
-  def unPickle(data:Array[Byte]):LogEntry = binary.toBinaryPickle(data).unpickle[LogEntry]
+  def unPickle[T](data:Array[Byte]):T = binary.toBinaryPickle(data).unpickle[T]
+
+  //def unPickle2(data:Array[Byte]):LogEntry = binary.toBinaryPickle(data).unpickle[LogEntry]
+
 
   def getLast():Option[LogEntry]={
     var re : Option[LogEntry] = None
@@ -100,11 +104,41 @@ class LogEntryLevelDBJava(val dbName:String,val dbRootPath:String=null) extends 
     re
   }
 
-  def getLastN(n:Int):Array[LogEntry]={
-    var logEntries: Array[LogEntry] =Array()
+
+  implicit class levelDBIteration(val iterator:DBIterator) {
+    def iterate[A](n:Int, initExec: DBIterator=>Unit,  exec: (List[A],DBIterator)=> List[A]):Option[List[A]] ={
+      if (n<0) return None
+
+      var list: List[A]=List[A]()
+      try{
+        initExec(iterator)
+        var count=0
+        while(iterator.hasNext() && count<n){
+          list=exec(list,iterator)
+          iterator.next()
+          count+=1
+        }
+      } finally {
+        iterator.close()
+      }
+      Some(list)
+    }
+  }
+
+
+
+  def getLastN2(n:Int):Option[List[LogEntry]]={
+    db.iterator iterate(  n, _.seekToFirst(), (x,it) =>{ x :+ unPickle(it.peekNext().getValue) } )
+  }
+
+  def getLastN(n:Int):Option[List[LogEntry]]={
+    if (n<0) return None
+
+    var logEntries: List[LogEntry] = Nil
     val iterator= db.iterator
 
     try{
+
       iterator.seekToFirst()
       var count=0
       while(iterator.hasNext() && count<n){
@@ -115,16 +149,26 @@ class LogEntryLevelDBJava(val dbName:String,val dbRootPath:String=null) extends 
     } finally {
       iterator.close()
     }
-    logEntries
+    Some(logEntries)
   }
 
-  def getLastNFrom(n:Int,index:Int):Array[LogEntry]={
-    val idx=getReverseIdxFromIndex(index)
-    var logEntries: Array[LogEntry] =Array()
+  def getLastNFrom2(n:Int,index:Int):Option[List[LogEntry]]={
+    val reverseIdxBytes=getReverseIdxBytesFromIndex(index)
+    val init:IterInit = _.seek(reverseIdxBytes)
+    val exec:IterExec[LogEntry] = (x,it) =>{ x :+ unPickle(it.peekNext().getValue) }
+    db.iterator iterate(  n, _.seek(reverseIdxBytes), (x,it) =>{ x :+ unPickle(it.peekNext().getValue) } )
+  }
+
+  def getLastNFrom(n:Int,index:Int):Option[List[LogEntry]]={
+    if (n<0) return None
+
+
+    val reverseIdxBytes=getReverseIdxBytesFromIndex(index)
+    var logEntries: List[LogEntry] = Nil
     val iterator= db.iterator
 
     try {
-      iterator.seek(getReverseIdxBytesFromIndex(idx))
+      iterator.seek(reverseIdxBytes)
       var count=0
       while(iterator.hasNext() && count<n){
         logEntries :+= unPickle(iterator.peekNext().getValue)
@@ -134,7 +178,16 @@ class LogEntryLevelDBJava(val dbName:String,val dbRootPath:String=null) extends 
     } finally {
       iterator.close()
     }
-    logEntries
+    Some(logEntries)
+  }
+
+  type IterInit = (DBIterator) => Unit
+  type IterExec[T] = (List[T],DBIterator)=> List[T]
+
+  def getLastIndex2():Option[Long]={
+    val init:IterInit = _.seekToFirst()
+    val exec:IterExec[Long] = (x,it) =>{ x :+ unPickle(it.peekNext().getKey) }
+    db.iterator iterate (1, init,exec) map(_.head)
   }
 
   def getLastIndex():Option[Long]={
@@ -153,7 +206,7 @@ class LogEntryLevelDBJava(val dbName:String,val dbRootPath:String=null) extends 
     re
   }
 
-  def getSomething[
+
 
   def getIndex(idx:Long)= Long.MaxValue-idx
   def getIdx(index:Long)= Long.MaxValue-index
@@ -164,3 +217,10 @@ class LogEntryLevelDBJava(val dbName:String,val dbRootPath:String=null) extends 
 
 }
 
+
+object test extends App{
+  var a:List[Int]=Nil
+  val b = 3 :: a
+  val b2 = b :+ 9
+
+}
