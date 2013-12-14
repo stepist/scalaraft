@@ -21,8 +21,8 @@ trait LogEntryDB {
 
   def getEntry(index:Long) : Option[LogEntry]
   def getLast():Option[LogEntry]
-  def getLastN(n:Int):Array[LogEntry]
-  def getLastNFrom(n:Int,index:Int):Array[LogEntry]
+  def getLastN(n:Int):Option[List[LogEntry]]
+  def getLastNFrom(n:Int,index:Int):Option[List[LogEntry]]
 
   def getLastIndex():Option[Long]
 

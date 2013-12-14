@@ -27,6 +27,10 @@ class LogEntryLevelDBJava(val dbName:String,val dbRootPath:String=null) extends 
   type ReverseIdxBytes = Array[Byte]
 
 
+  val logEntrySomething:LogEntry=null
+  val longSomething=0
+
+
   def getReverseIdxBytesFromIndex(index:Long):ReverseIdxBytes = ByteBuffer.allocate(8).putLong(getReverseIdxFromIndex(index)).array()
   def getIndexFromReverseIdx(rIdx:ReverseIdx)= Long.MaxValue-rIdx
   def getReverseIdxFromIndex(index:Long)= Long.MaxValue-index
@@ -79,14 +83,13 @@ class LogEntryLevelDBJava(val dbName:String,val dbRootPath:String=null) extends 
   }
 
   def getEntry(index:Long) : Option[LogEntry] = {
-    val idx=getReverseIdxFromIndex(index)
-    val key = getReverseIdxBytesFromIndex(idx)
+    val key = getReverseIdxBytesFromIndex(index)
     val re=db.get(key)
     if (re==null) return None
-    Some(unPickle(re))
+    Some(unPickle[LogEntry](re,logEntrySomething))
   }
 
-  def unPickle[T](data:Array[Byte]):T = binary.toBinaryPickle(data).unpickle[T]
+  def unPickle[T:Unpickler:FastTypeTag](data:Array[Byte],t:T):T = binary.toBinaryPickle(data).unpickle[T]
 
   //def unPickle2(data:Array[Byte]):LogEntry = binary.toBinaryPickle(data).unpickle[LogEntry]
 
@@ -97,7 +100,7 @@ class LogEntryLevelDBJava(val dbName:String,val dbRootPath:String=null) extends 
     try{
       iterator.seekToFirst()
       if (iterator.hasNext )
-        re=Some(unPickle(iterator.peekNext().getValue))
+        re=Some(unPickle[LogEntry](iterator.peekNext().getValue,logEntrySomething))
     } finally {
       iterator.close()
     }
@@ -128,7 +131,7 @@ class LogEntryLevelDBJava(val dbName:String,val dbRootPath:String=null) extends 
 
 
   def getLastN2(n:Int):Option[List[LogEntry]]={
-    db.iterator iterate(  n, _.seekToFirst(), (x,it) =>{ x :+ unPickle(it.peekNext().getValue) } )
+    db.iterator iterate(  n, _.seekToFirst(), (x:List[LogEntry],it) =>{ x :+ unPickle[LogEntry](it.peekNext().getValue,logEntrySomething) } )
   }
 
   def getLastN(n:Int):Option[List[LogEntry]]={
@@ -142,7 +145,7 @@ class LogEntryLevelDBJava(val dbName:String,val dbRootPath:String=null) extends 
       iterator.seekToFirst()
       var count=0
       while(iterator.hasNext() && count<n){
-        logEntries :+= unPickle(iterator.peekNext().getValue)
+        logEntries :+= unPickle[LogEntry](iterator.peekNext().getValue,logEntrySomething)
         iterator.next()
         count+=1
       }
@@ -154,9 +157,8 @@ class LogEntryLevelDBJava(val dbName:String,val dbRootPath:String=null) extends 
 
   def getLastNFrom2(n:Int,index:Int):Option[List[LogEntry]]={
     val reverseIdxBytes=getReverseIdxBytesFromIndex(index)
-    val init:IterInit = _.seek(reverseIdxBytes)
-    val exec:IterExec[LogEntry] = (x,it) =>{ x :+ unPickle(it.peekNext().getValue) }
-    db.iterator iterate(  n, _.seek(reverseIdxBytes), (x,it) =>{ x :+ unPickle(it.peekNext().getValue) } )
+    val exec:IterExec[LogEntry] = (x,it) =>{ x :+ unPickle[LogEntry](it.peekNext().getValue,logEntrySomething) }
+    db.iterator iterate( n, _.seek(reverseIdxBytes), exec )
   }
 
   def getLastNFrom(n:Int,index:Int):Option[List[LogEntry]]={
@@ -171,7 +173,7 @@ class LogEntryLevelDBJava(val dbName:String,val dbRootPath:String=null) extends 
       iterator.seek(reverseIdxBytes)
       var count=0
       while(iterator.hasNext() && count<n){
-        logEntries :+= unPickle(iterator.peekNext().getValue)
+        logEntries :+= unPickle[LogEntry](iterator.peekNext().getValue,logEntrySomething)
         iterator.next()
         count+=1
       }
@@ -185,9 +187,8 @@ class LogEntryLevelDBJava(val dbName:String,val dbRootPath:String=null) extends 
   type IterExec[T] = (List[T],DBIterator)=> List[T]
 
   def getLastIndex2():Option[Long]={
-    val init:IterInit = _.seekToFirst()
-    val exec:IterExec[Long] = (x,it) =>{ x :+ unPickle(it.peekNext().getKey) }
-    db.iterator iterate (1, init,exec) map(_.head)
+    val exec:IterExec[Long] = (x,it) =>{ x :+ unPickle[Long](it.peekNext().getKey,longSomething) }
+    db.iterator iterate (1, _.seekToFirst(),exec) map(_.head)
   }
 
   def getLastIndex():Option[Long]={
@@ -208,11 +209,6 @@ class LogEntryLevelDBJava(val dbName:String,val dbRootPath:String=null) extends 
 
 
 
-  def getIndex(idx:Long)= Long.MaxValue-idx
-  def getIdx(index:Long)= Long.MaxValue-index
-
-
-
   def close = db.close
 
 }
@@ -222,5 +218,8 @@ object test extends App{
   var a:List[Int]=Nil
   val b = 3 :: a
   val b2 = b :+ 9
+
+
+  println("hello")
 
 }
