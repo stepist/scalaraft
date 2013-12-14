@@ -51,6 +51,17 @@ class LogEntryLevelDBJava(val dbName:String,val dbRootPath:String=null) extends 
 
   def dbDelete(ckey:CKey)(implicit options:WriteOptions) =  db.delete(ckey.key,options)
   def dbPut(ckey:CKey , value:Array[Byte])(implicit options:WriteOptions) =db.put(ckey.key, value , writeOption)
+  def dbGet(ckey:CKey)=db.get(ckey.key)
+
+  def iterSeekToLast(iter:DBIterator) = iter.seekToFirst
+  def iterSeek(iter:DBIterator,ckey:CKey) = iter.seek(ckey.key)
+  def iterPrev(iter:DBIterator) = iter.next
+  def iterNext(iter:DBIterator) = iter.prev
+  def iterPeekPrev(iter:DBIterator) = iter.peekNext
+  def iterPeekNext(iter:DBIterator) = iter.peekPrev
+  def iterHasPrev(iter:DBIterator) = iter.hasNext
+  def iterHasNext(iter:DBIterator) = iter.hasPrev
+
 
 
 
@@ -77,10 +88,8 @@ class LogEntryLevelDBJava(val dbName:String,val dbRootPath:String=null) extends 
     }
   }
 
-  def appendEntry(logEntry:LogEntry){
-    val key = getReverseIdxBytesFromIndex(logEntry.index)
-    db.put(key, logEntry.pickle.value , writeOption)
-  }
+  def appendEntry(logEntry:LogEntry)=dbPut(logEntry.index,logEntry.pickle.value)
+
 
   def appendEntries(logEntries : Array[LogEntry]){
     //for(logEntry <- logEntries)  appendEntry(logEntry)
@@ -99,10 +108,9 @@ class LogEntryLevelDBJava(val dbName:String,val dbRootPath:String=null) extends 
   }
 
   def getEntry(index:Long) : Option[LogEntry] = {
-    val key = getReverseIdxBytesFromIndex(index)
-    val re=db.get(key)
+    val re=dbGet(index)
     if (re==null) return None
-    Some(unPickle(re,logEntrySomething))
+    Some(unPickle[LogEntry](re))
   }
 
   def unPickle[T:Unpickler:FastTypeTag](data:Array[Byte],t:T):T = binary.toBinaryPickle(data).unpickle[T]
