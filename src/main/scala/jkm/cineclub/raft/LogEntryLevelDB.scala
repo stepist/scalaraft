@@ -28,17 +28,15 @@ class LogEntryLevelDB(val dbName:String,val dbRootPath:String=null) extends LogE
   type IterInit = (DBIterator) => Unit
   type IterExec[T] = (List[T],DBIterator)=> List[T]
 
-  implicit class CKey(val index:Index)
   def translateIndex(index:Index):Index = Long.MaxValue-index
-  implicit def translateCKeyToKey(ckey:CKey):Array[Byte] = doPickle(translateIndex(ckey.index))
   implicit def translateIndexToKey(index:Index):Array[Byte] = doPickle(translateIndex(index))
 
-  def dbDelete(ckey:CKey)(implicit options:WriteOptions) = db.delete(ckey,options)
-  def dbPut(ckey:CKey , value:Array[Byte])(implicit options:WriteOptions) = db.put(ckey, value , writeOption)
-  def dbGet(ckey:CKey) = db.get(ckey)
+  def dbDelete(index:Index)(implicit options:WriteOptions) = db.delete(index,options)
+  def dbPut(index:Index, value:Array[Byte])(implicit options:WriteOptions) = db.put(index, value , writeOption)
+  def dbGet(index:Index) = db.get(index)
 
   def iterSeekToLast(iter:DBIterator) = iter.seekToFirst
-  def iterSeek(iter:DBIterator,ckey:CKey) = iter.seek(ckey)
+  def iterSeek(iter:DBIterator,index:Index) = iter.seek(index)
   def iterPrev(iter:DBIterator) = iter.next
   def iterNext(iter:DBIterator) = iter.prev
   def iterPeekPrev(iter:DBIterator) = iter.peekNext
@@ -46,17 +44,16 @@ class LogEntryLevelDB(val dbName:String,val dbRootPath:String=null) extends LogE
   def iterHasPrev(iter:DBIterator) = iter.hasNext
   def iterHasNext(iter:DBIterator) = iter.hasPrev
 
-  def batchDelete(batch:WriteBatch,ckey:CKey)= batch.delete(ckey)
-  def batchPut(batch:WriteBatch,ckey:CKey,value:Array[Byte])= batch.put(ckey,value)
+  def batchDelete(batch:WriteBatch,index:Index)= batch.delete(index)
+  def batchPut(batch:WriteBatch,index:Index,value:Array[Byte])= batch.put(index,value)
 
   implicit class BatchIteration(val batch:WriteBatch) {
     def batchOp[A](list:List[A],exec:(WriteBatch,A) => Unit ){
       try {
         for(item<-list) exec(batch,item)
         db.write(batch,writeOption)
-      } finally {
-        batch.close()
       }
+      finally batch.close()
     }
   }
 
@@ -64,19 +61,18 @@ class LogEntryLevelDB(val dbName:String,val dbRootPath:String=null) extends LogE
     def iterateBack[A](n:Int, initExec: DBIterator=>Unit,  exec: (List[A],DBIterator)=> List[A]):Option[List[A]] ={
       if (n<0) return None
 
-      var list: List[A]=List[A]()
+      var list: List[A]= Nil
       try{
         initExec(iterator)
         var count=0
         while(iterHasPrev(iterator) && count<n){
           list=exec(list,iterator)
-          iterator.next()
           iterPrev(iterator)
           count+=1
         }
-      } finally {
-        iterator.close()
       }
+      finally iterator.close()
+
       Some(list)
     }
   }
