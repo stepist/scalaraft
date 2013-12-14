@@ -29,7 +29,7 @@ class LogEntryLevelDB(val dbName:String,val dbRootPath:String=null) extends LogE
   type IterInit = (DBIterator) => Unit
   type IterExec[T] = (List[T],DBIterator)=> List[T]
 
-  type Index = Long
+
   def translateIndex(index:Index):Index=Long.MaxValue-index
   implicit def translateIndexToCKey(index:Index):CKey= {
     val translatedIndex=translateIndex(index)
@@ -59,50 +59,17 @@ class LogEntryLevelDB(val dbName:String,val dbRootPath:String=null) extends LogE
 
   def deleteEntry(index:Index)=dbDelete(index)
 
-  def delete(list:List[Index]){
-    val batch :WriteBatch= db.createWriteBatch()
-    for(index<-list) batchDelete(batch,index)
-  }
-
-  implicit class BatchIteration(val batch:WriteBatch) {
-    def iterate[A](list:List[A],exec:(WriteBatch,A) => Unit ){
-      try {
-        for(item<-list) exec(batch,item)
-        db.write(batch,writeOption)
-      } finally {
-        batch.close()
-      }
-    }
-  }
-
-  def deleteFrom(index:Long){
+  def deleteFrom(index:Index){
     val lastIndexSomething = getLastIndex()
-    for (lastIndex <-lastIndexSomething) {
-      if (index > lastIndex) return
+    if (lastIndexSomething.isEmpty) return
+    if (index > lastIndexSomething.get) return
 
-      val batch :WriteBatch= db.createWriteBatch()
-      try {
-        for(index2<- index to lastIndex) batchDelete(batch,index2)
-        db.write(batch,writeOption)
-      } finally {
-        batch.close()
-      }
-    }
+    db.createWriteBatch iterate( (index to lastIndexSomething.get).toList , (b,i:Index)=>batchDelete(b,i) )
   }
-
-
 
   def appendEntry(logEntry:LogEntry)=dbPut(logEntry.index,doPickle(logEntry))
 
-  def appendEntries(logEntries : Array[LogEntry]){
-    val batch :WriteBatch= db.createWriteBatch()
-    try {
-      for(logEntry <- logEntries) batchPut(batch,logEntry.index, doPickle(logEntry))
-      db.write(batch,writeOption)
-    } finally {
-      batch.close()
-    }
-  }
+  def appendEntries(logEntries : List[LogEntry]) = db.createWriteBatch iterate( logEntries, (b,e:LogEntry)=>batchPut(b,e.index, doPickle(e)) )
 
   def getEntry(index:Index) : Option[LogEntry] = {
     val entryBytes=dbGet(index)
@@ -132,6 +99,17 @@ class LogEntryLevelDB(val dbName:String,val dbRootPath:String=null) extends LogE
   def close = db.close
 
 
+
+  implicit class BatchIteration(val batch:WriteBatch) {
+    def iterate[A](list:List[A],exec:(WriteBatch,A) => Unit ){
+      try {
+        for(item<-list) exec(batch,item)
+        db.write(batch,writeOption)
+      } finally {
+        batch.close()
+      }
+    }
+  }
 
 
   implicit class levelDBIteration(val iterator:DBIterator) {
@@ -182,5 +160,31 @@ object test extends App{
 
 
   println("hello")
+
+  import LogEntryDB._
+
+  val db :DB = factory.open(new File("testLevelDB","testLevelDB"), new Options())
+  implicit val writeOption=new WriteOptions().sync(true)
+
+  for(i<- 1 to 10)  db.put((10-i).pickle.value,("c"+i).pickle.value)
+
+
+
+  val iter=db.iterator
+
+  iter.seekToFirst
+  println(binary.toBinaryPickle(iter.peekNext().getValue).unpickle[String])
+  iter.close
+
+
+  val iter2=db.iterator
+  iter2.seekToLast
+  println(binary.toBinaryPickle(iter2.peekPrev().getValue).unpickle[String])
+  iter2.close
+
+
+  db.close()
+
+
 
 }

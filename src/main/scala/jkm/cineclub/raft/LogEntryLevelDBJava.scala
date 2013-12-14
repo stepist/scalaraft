@@ -91,7 +91,7 @@ class LogEntryLevelDBJava(val dbName:String,val dbRootPath:String=null) extends 
   def appendEntry(logEntry:LogEntry)=dbPut(logEntry.index,logEntry.pickle.value)
 
 
-  def appendEntries(logEntries : Array[LogEntry]){
+  def appendEntries(logEntries : List[LogEntry]){
     //for(logEntry <- logEntries)  appendEntry(logEntry)
     val batch :WriteBatch= db.createWriteBatch()
     try {
@@ -199,13 +199,13 @@ class LogEntryLevelDBJava(val dbName:String,val dbRootPath:String=null) extends 
     Some(logEntries)
   }
 
-  def getLastNFrom2(n:Int,index:Int):Option[List[LogEntry]]={
+  def getLastNFrom2(n:Int,index:Index):Option[List[LogEntry]]={
     val reverseIdxBytes=getReverseIdxBytesFromIndex(index)
     val exec:IterExec[LogEntry] = (x,it) =>{ x :+ unPickle[LogEntry](it.peekNext().getValue,logEntrySomething) }
     db.iterator iterate( n, _.seek(reverseIdxBytes), exec )
   }
 
-  def getLastNFrom(n:Int,index:Int):Option[List[LogEntry]]={
+  def getLastNFrom(n:Int,index:Index):Option[List[LogEntry]]={
     if (n<0) return None
 
 
@@ -257,7 +257,7 @@ class LogEntryLevelDBJava(val dbName:String,val dbRootPath:String=null) extends 
 }
 
 
-object test extends App{
+object test2 extends App{
   var a:List[Int]=Nil
   val b = 3 :: a
   val b2 = b :+ 9

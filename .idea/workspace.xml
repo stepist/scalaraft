@@ -2,17 +2,18 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="2d20172a-4920-4f11-b28a-428547c6bb6f" name="Default" comment="">
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/src/main/scala/jkm/cineclub/raft/LogEntryLevelDB.scala" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/main/scala/jkm/cineclub/raft/LogEntryDB.scala" afterPath="$PROJECT_DIR$/src/main/scala/jkm/cineclub/raft/LogEntryDB.scala" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/main/scala/jkm/cineclub/raft/LogEntryLevelDB.scala" afterPath="$PROJECT_DIR$/src/main/scala/jkm/cineclub/raft/LogEntryLevelDB.scala" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/main/scala/jkm/cineclub/raft/LogEntryLevelDBJava.scala" afterPath="$PROJECT_DIR$/src/main/scala/jkm/cineclub/raft/LogEntryLevelDBJava.scala" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
     </list>
     <ignored path="scalaraft.iws" />
     <ignored path=".idea/workspace.xml" />
     <file path="$PROJECT_DIR$/.idea/modules.xml" changelist="2d20172a-4920-4f11-b28a-428547c6bb6f" time="1387005163848" ignored="false" />
-    <file path="/Dummy.txt" changelist="2d20172a-4920-4f11-b28a-428547c6bb6f" time="1387018189358" ignored="false" />
-    <file path="/LogEntryLevelDBJava.scala" changelist="2d20172a-4920-4f11-b28a-428547c6bb6f" time="1387022115305" ignored="false" />
-    <file path="/LogEntryDB.scala" changelist="2d20172a-4920-4f11-b28a-428547c6bb6f" time="1387014776021" ignored="false" />
-    <file path="/LogEntryLevelDB.scala" changelist="2d20172a-4920-4f11-b28a-428547c6bb6f" time="1387028469993" ignored="false" />
+    <file path="/Dummy.txt" changelist="2d20172a-4920-4f11-b28a-428547c6bb6f" time="1387028542650" ignored="false" />
+    <file path="/LogEntryLevelDBJava.scala" changelist="2d20172a-4920-4f11-b28a-428547c6bb6f" time="1387029299788" ignored="false" />
+    <file path="/LogEntryDB.scala" changelist="2d20172a-4920-4f11-b28a-428547c6bb6f" time="1387029061519" ignored="false" />
+    <file path="/LogEntryLevelDB.scala" changelist="2d20172a-4920-4f11-b28a-428547c6bb6f" time="1387039876413" ignored="false" />
     <option name="TRACKING_ENABLED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -76,7 +77,7 @@
       <file leaf-file-name="LogEntryDB.scala" pinned="false" current="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/main/scala/jkm/cineclub/raft/LogEntryDB.scala">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="24" column="58" selection-start="601" selection-end="601" vertical-scroll-proportion="-13.846154">
+            <state line="26" column="38" selection-start="604" selection-end="604" vertical-scroll-proportion="-10.923077">
               <folding />
             </state>
           </provider>
@@ -85,7 +86,7 @@
       <file leaf-file-name="LogEntryLevelDBJava.scala" pinned="false" current="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/main/scala/jkm/cineclub/raft/LogEntryLevelDBJava.scala">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="76" column="53" selection-start="2306" selection-end="2350" vertical-scroll-proportion="0.0">
+            <state line="198" column="57" selection-start="5531" selection-end="5531" vertical-scroll-proportion="8.730769">
               <folding>
                 <element signature="e#28#53#0" expanded="true" />
               </folding>
@@ -96,7 +97,7 @@
       <file leaf-file-name="LogEntryLevelDB.scala" pinned="false" current="true" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/main/scala/jkm/cineclub/raft/LogEntryLevelDB.scala">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="66" column="31" selection-start="2166" selection-end="2180" vertical-scroll-proportion="0.25684932">
+            <state line="93" column="35" selection-start="3335" selection-end="3335" vertical-scroll-proportion="0.56557375">
               <folding>
                 <element signature="e#27#52#0" expanded="true" />
               </folding>
@@ -231,6 +232,10 @@
             <PATH_ELEMENT>
               <option name="myItemId" value="raft" />
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="LogEntryLevelDB.scala" />
+              <option name="myItemType" value="org.jetbrains.plugins.scala.components.ScalaDefsProjectViewProvider$ScalaFileTreeNode" />
             </PATH_ELEMENT>
           </PATH>
           <PATH>
@@ -464,7 +469,11 @@
       <created>1387018195530</created>
       <updated>1387018195530</updated>
     </task>
-    <option name="localTasksCounter" value="6" />
+    <task id="LOCAL-00006" summary="...">
+      <created>1387028550694</created>
+      <updated>1387028550694</updated>
+    </task>
+    <option name="localTasksCounter" value="7" />
     <servers />
   </component>
   <component name="ToolWindowManager">
@@ -486,7 +495,7 @@
       <window_info id="Maven Projects" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="SLIDING" type="SLIDING" visible="false" weight="0.4" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.18849449" sideWeight="0.67016804" order="0" side_tool="false" content_ui="combo" />
-      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.177521" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.26890758" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
       <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
@@ -569,14 +578,14 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/main/scala/jkm/cineclub/raft/LogEntryDB.scala">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="24" column="58" selection-start="601" selection-end="601" vertical-scroll-proportion="-13.846154">
+        <state line="26" column="38" selection-start="604" selection-end="604" vertical-scroll-proportion="-10.923077">
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/main/scala/jkm/cineclub/raft/LogEntryLevelDBJava.scala">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="76" column="53" selection-start="2306" selection-end="2350" vertical-scroll-proportion="0.0">
+        <state line="198" column="57" selection-start="5531" selection-end="5531" vertical-scroll-proportion="8.730769">
           <folding>
             <element signature="e#28#53#0" expanded="true" />
           </folding>
@@ -585,7 +594,7 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/main/scala/jkm/cineclub/raft/LogEntryLevelDB.scala">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="66" column="31" selection-start="2166" selection-end="2180" vertical-scroll-proportion="0.25684932">
+        <state line="93" column="35" selection-start="3335" selection-end="3335" vertical-scroll-proportion="0.56557375">
           <folding>
             <element signature="e#27#52#0" expanded="true" />
           </folding>
