@@ -10,23 +10,6 @@
       </map>
     </option>
   </component>
-  <component SSL_PROTOCOLS="sslv3" cleanupOnStartRun="false" myAutoUpdateAfterCommit="false" myUseAcceleration="nothing" maxAnnotateRevisions="500" name="SvnConfiguration">
-    <option value="" name="USER" />
-    <option value="" name="PASSWORD" />
-    <option value="30000" name="mySSHConnectionTimeout" />
-    <option value="30000" name="mySSHReadTimeout" />
-    <option name="LAST_MERGED_REVISION" />
-    <option value="false" name="MERGE_DRY_RUN" />
-    <option value="true" name="MERGE_DIFF_USE_ANCESTRY" />
-    <option value="false" name="UPDATE_LOCK_ON_DEMAND" />
-    <option value="false" name="IGNORE_SPACES_IN_MERGE" />
-    <option value="false" name="CHECK_NESTED_FOR_QUICK_MERGE" />
-    <option value="true" name="IGNORE_SPACES_IN_ANNOTATE" />
-    <option value="true" name="SHOW_MERGE_SOURCES_IN_ANNOTATE" />
-    <option value="false" name="FORCE_UPDATE" />
-    <option value="false" name="IGNORE_EXTERNALS" />
-    <myIsUseDefaultProxy>false</myIsUseDefaultProxy>
-  </component>
   <component name="masterDetails">
     <states>
       <state key="ProjectJDKs.UI">
