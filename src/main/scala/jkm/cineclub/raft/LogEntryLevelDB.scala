@@ -9,6 +9,8 @@ import scala.pickling._
 import binary._
 import scala.Some
 
+import java.util.Map
+
 /**
  * Created with IntelliJ IDEA.
  * User: cineclub
@@ -19,17 +21,23 @@ import scala.Some
 class LogEntryLevelDB(val dbName:String,val dbRootPath:String=null) extends LogEntryDB  {
   import LogEntryDB._
 
+
   val db :DB = factory.open(new File(dbRootPath,dbName), new Options())
   implicit val writeOption=new WriteOptions().sync(true)
 
-  def unPickle[T: Unpickler: FastTypeTag](data:Array[Byte]):T = binary.toBinaryPickle(data).unpickle[T]
-  def doPickle[T: SPickler: FastTypeTag](a:T):Array[Byte]=a.pickle.value
+  type BA = Array[Byte]
+  type DBEntry = Map.Entry[BA,BA]
+
+  def unPickle[T: Unpickler: FastTypeTag](data:BA):T = binary.toBinaryPickle(data).unpickle[T]
+  def doPickle[T: SPickler: FastTypeTag](a:T):BA=a.pickle.value
+  //def unPickle2[T: Unpickler: FastTypeTag](data:BA,tt:T):T = binary.toBinaryPickle(data).unpickle[T]
+
 
   type IterInit = (DBIterator) => Unit
-  type IterExec[T] = (List[T],DBIterator)=> List[T]
+  type IterExec[T] = (DBEntry)=> T
 
   def translateIndex(index:Index):Index = Long.MaxValue-index
-  implicit def translateIndexToKey(index:Index):Array[Byte] = doPickle(translateIndex(index))
+  implicit def translateIndexToKey(index:Index):BA = doPickle(translateIndex(index))
 
   def dbDelete(index:Index)(implicit options:WriteOptions) = db.delete(index,options)
   def dbPut(index:Index, value:Array[Byte])(implicit options:WriteOptions) = db.put(index, value , writeOption)
@@ -58,15 +66,17 @@ class LogEntryLevelDB(val dbName:String,val dbRootPath:String=null) extends LogE
   }
 
   implicit class levelDBIteration(val iterator:DBIterator) {
-    def iterateBack[A](n:Int, initExec: DBIterator=>Unit,  exec: (List[A],DBIterator)=> List[A]):Option[List[A]] ={
+    def iterateBack[A](n:Int, initExec: DBIterator=>Unit,  exec: IterExec[A]):Option[List[A]] ={
       if (n<0) return None
+
+      val tt:A = None.get
 
       var list: List[A]= Nil
       try{
         initExec(iterator)
         var count=0
         while(iterHasPrev(iterator) && count<n){
-          list=exec(list,iterator)
+          list = list :+ exec(iterPeekPrev(iterator))
           iterPrev(iterator)
           count+=1
         }
@@ -89,23 +99,43 @@ class LogEntryLevelDB(val dbName:String,val dbRootPath:String=null) extends LogE
 
   def getEntry(index:Index) : Option[LogEntry] = Some(unPickle[LogEntry](dbGet(index)))
 
-  val execIterPeekPrevGetValue:IterExec[LogEntry] = (x,it) =>{ x :+ unPickle[LogEntry](iterPeekPrev(it).getValue) }
-  val execIterPeekPrevGetKey:IterExec[Index] = (x,it) =>{ x :+ unPickle[Index](iterPeekPrev(it).getKey) }
+  def getLast():Option[LogEntry] = db.iterator iterateBack( 1, iterSeekToLast(_), x => unPickle[LogEntry](x.getValue) ) map(_.head)
 
-  def getLast():Option[LogEntry] = db.iterator iterateBack( 1, iterSeekToLast(_), execIterPeekPrevGetValue) map(_.head)
+  def getLastN(n:Int):Option[List[LogEntry]] = db.iterator iterateBack( n, iterSeekToLast(_), x => unPickle[LogEntry](x.getValue))
 
-  def getLastN(n:Int):Option[List[LogEntry]] = db.iterator iterateBack( n, iterSeekToLast(_), execIterPeekPrevGetValue)
+  def getLastNFrom(n:Int,index:Index):Option[List[LogEntry]] = db.iterator iterateBack( n, iterSeek(_,index), x => unPickle[LogEntry](x.getValue))
 
-  def getLastNFrom(n:Int,index:Index):Option[List[LogEntry]] = db.iterator iterateBack( n, iterSeek(_,index), execIterPeekPrevGetValue)
-
-  def getLastIndex():Option[Index] = db.iterator iterateBack ( 1, iterSeekToLast(_), execIterPeekPrevGetKey) map(_.head)
+  def getLastIndex():Option[Index] = db.iterator iterateBack ( 1, iterSeekToLast(_),x => unPickle[Index](x.getKey)) map(_.head)
 
 
   def close = db.close
 
 }
 
+object TestLogEntryLevelDB extends App{
+  import LogEntryDB._
+  val dbName="TestLevelDB2"
 
+  try{
+  factory.destroy(new File(dbName), new Options())
+  }catch{
+    case e:Exception => println(e)
+  }
+
+
+  val levelDB= new LogEntryLevelDB(dbName)
+
+ //for(i <- 1 to 10) levelDB.appendEntry(LogEntry(i,i+1,"test"+i))
+  //for(i <- 1 to 10) println(levelDB.getEntry(i))
+
+  //println(levelDB.doPickle(null))
+  val a:Array[Byte] = null
+  levelDB.unPickle[Int](a)
+
+
+  levelDB.close
+
+}
 object test extends App{
   var a:List[Int]=Nil
   val b = 3 :: a
@@ -134,6 +164,7 @@ object test extends App{
   iter2.seekToLast
   println(binary.toBinaryPickle(iter2.peekPrev().getValue).unpickle[String])
   iter2.close
+
 
 
   db.close()

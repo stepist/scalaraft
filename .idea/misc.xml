@@ -1,12 +1,12 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
-  <component name="ProjectRootManager" version="2" languageLevel="JDK_1_6" assert-keyword="true" jdk-15="true" project-jdk-name="1.7" project-jdk-type="JavaSDK">
-    <output url="file://$PROJECT_DIR$/out" />
-  </component>
+  <component 
+  name="ProjectRootManager" version="2" languageLevel="JDK_1_6" assert-keyword="true" jdk-15="true" project-jdk-name="1.7" project-jdk-type="JavaSDK">
+    <output url="file://$PROJECT_DIR$/out"/>
+</component>
   <component name="SbtLocalSettings">
     <option name="modificationStamps">
       <map>
-        <entry value="1378473416000" key="$USER_HOME$/hello-akka" />
+        <entry key="$USER_HOME$/hello-akka" value="1378473416000"/>
       </map>
     </option>
   </component>
@@ -18,7 +18,7 @@
           <splitter-proportions>
             <option name="proportions">
               <list>
-                <option value="0.2" />
+                <option value="0.2"/>
               </list>
             </option>
           </splitter-proportions>
@@ -27,4 +27,3 @@
     </states>
   </component>
 </project>
-

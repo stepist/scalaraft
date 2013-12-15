@@ -35,7 +35,4 @@ trait LogEntryDB {
 
 object LogEntryDB{
   case class LogEntry(index:Long,term:Long,command:String)
-
-
-
 }
