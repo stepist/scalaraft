@@ -1,4 +1,4 @@
-package jkm.cineclub.raft
+package jkm.cineclub.raft.DB
 
 import org.iq80.leveldb._
 import org.iq80.leveldb.impl.Iq80DBFactory._

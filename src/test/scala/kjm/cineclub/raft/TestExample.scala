@@ -13,10 +13,10 @@ package kjm.cineclub.raft
 
 import collection.mutable.Stack
 import org.scalatest._
-import jkm.cineclub.raft.{LogEntryLevelDB, LogEntryDB}
 import org.iq80.leveldb.impl.Iq80DBFactory._
 import java.io.File
 import org.iq80.leveldb.Options
+import jkm.cineclub.raft.DB.{LogEntryLevelDB, LogEntryDB}
 
 
 class LogEntryDBSpec extends FlatSpec with Matchers {

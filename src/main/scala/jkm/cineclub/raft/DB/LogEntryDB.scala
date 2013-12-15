@@ -1,4 +1,4 @@
-package jkm.cineclub.raft
+package jkm.cineclub.raft.DB
 
 /**
  * Created with IntelliJ IDEA.

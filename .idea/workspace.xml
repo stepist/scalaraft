@@ -1,16 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="2d20172a-4920-4f11-b28a-428547c6bb6f" name="Default" comment="">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/main/scala/jkm/cineclub/raft/LogEntryDB.scala" afterPath="$PROJECT_DIR$/src/main/scala/jkm/cineclub/raft/LogEntryDB.scala" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/main/scala/jkm/cineclub/raft/LogEntryLevelDB.scala" afterPath="$PROJECT_DIR$/src/main/scala/jkm/cineclub/raft/LogEntryLevelDB.scala" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/main/scala/jkm/cineclub/raft/LogEntryLevelDBJava.scala" afterPath="$PROJECT_DIR$/src/main/scala/jkm/cineclub/raft/LogEntryLevelDBJava.scala" />
+    <list default="true" id="2d20172a-4920-4f11-b28a-428547c6bb6f" name="Default" comment="...">
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/src/main/scala/jkm/cineclub/raft/DBWrapper/MsgBuffer.scala" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/src/main/scala/jkm/cineclub/raft/DBWrapper/ReqRspHandler.scala" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/src/main/scala/jkm/cineclub/raft/LogEntryDB.scala" afterPath="$PROJECT_DIR$/src/main/scala/jkm/cineclub/raft/DB/LogEntryDB.scala" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/src/main/scala/jkm/cineclub/raft/LogEntryLevelDB.scala" afterPath="$PROJECT_DIR$/src/main/scala/jkm/cineclub/raft/DB/LogEntryLevelDB.scala" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/src/main/scala/jkm/cineclub/raft/LogEntryLevelDBJava.scala" afterPath="$PROJECT_DIR$/src/main/scala/jkm/cineclub/raft/DB/LogEntryLevelDBJava.scala" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/test/scala/kjm/cineclub/raft/TestExample.scala" afterPath="$PROJECT_DIR$/src/test/scala/kjm/cineclub/raft/TestExample.scala" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
     </list>
     <ignored path="scalaraft.iws" />
     <ignored path=".idea/workspace.xml" />
-    <file path="/Dummy.txt" changelist="2d20172a-4920-4f11-b28a-428547c6bb6f" time="1387100439494" ignored="false" />
+    <file path="/Dummy.txt" changelist="2d20172a-4920-4f11-b28a-428547c6bb6f" time="1387116160864" ignored="false" />
     <file path="/LogEntryLevelDBJava.scala" changelist="2d20172a-4920-4f11-b28a-428547c6bb6f" time="1387103805033" ignored="false" />
     <file path="/LogEntryDB.scala" changelist="2d20172a-4920-4f11-b28a-428547c6bb6f" time="1387099050157" ignored="false" />
     <file path="/LogEntryLevelDB.scala" changelist="2d20172a-4920-4f11-b28a-428547c6bb6f" time="1387105271515" ignored="false" />
@@ -83,31 +85,31 @@
   </component>
   <component name="FileEditorManager">
     <leaf>
-      <file leaf-file-name="LogEntryDB.scala" pinned="false" current="true" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/src/main/scala/jkm/cineclub/raft/LogEntryDB.scala">
+      <file leaf-file-name="LogEntryDB.scala" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/main/scala/jkm/cineclub/raft/DB/LogEntryDB.scala">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="23" column="14" selection-start="447" selection-end="455" vertical-scroll-proportion="0.5693069">
+            <state line="24" column="32" selection-start="523" selection-end="523" vertical-scroll-proportion="0.0">
               <folding />
             </state>
           </provider>
         </entry>
       </file>
       <file leaf-file-name="LogEntryLevelDBJava.scala" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/main/scala/jkm/cineclub/raft/LogEntryLevelDBJava.scala">
+        <entry file="file://$PROJECT_DIR$/src/main/scala/jkm/cineclub/raft/DB/LogEntryLevelDBJava.scala">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="22" column="17" selection-start="604" selection-end="604" vertical-scroll-proportion="0.0">
-              <folding />
+            <state line="21" column="0" selection-start="606" selection-end="606" vertical-scroll-proportion="0.0">
+              <folding>
+                <element signature="e#30#55#0" expanded="false" />
+              </folding>
             </state>
           </provider>
         </entry>
       </file>
       <file leaf-file-name="LogEntryLevelDB.scala" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/main/scala/jkm/cineclub/raft/LogEntryLevelDB.scala">
+        <entry file="file://$PROJECT_DIR$/src/main/scala/jkm/cineclub/raft/DB/LogEntryLevelDB.scala">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="23" column="79" selection-start="511" selection-end="511" vertical-scroll-proportion="6.1153846">
-              <folding>
-                <element signature="e#27#52#0" expanded="true" />
-              </folding>
+            <state line="11" column="16" selection-start="238" selection-end="238" vertical-scroll-proportion="-5.1923075">
+              <folding />
             </state>
           </provider>
         </entry>
@@ -115,10 +117,28 @@
       <file leaf-file-name="TestExample.scala" pinned="false" current="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/test/scala/kjm/cineclub/raft/TestExample.scala">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="171" column="5" selection-start="3875" selection-end="3875" vertical-scroll-proportion="0.0">
+            <state line="171" column="3" selection-start="3878" selection-end="3878" vertical-scroll-proportion="0.0">
               <folding>
                 <element signature="e#188#219#0" expanded="true" />
               </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="ReqRspHandler.scala" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/main/scala/jkm/cineclub/raft/DBWrapper/ReqRspHandler.scala">
+          <provider selected="true" editor-type-id="text-editor">
+            <state line="20" column="56" selection-start="580" selection-end="580" vertical-scroll-proportion="0.0">
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="MsgBuffer.scala" pinned="false" current="true" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/src/main/scala/jkm/cineclub/raft/DBWrapper/MsgBuffer.scala">
+          <provider selected="true" editor-type-id="text-editor">
+            <state line="36" column="7" selection-start="632" selection-end="632" vertical-scroll-proportion="0.8910891">
+              <folding />
             </state>
           </provider>
         </entry>
@@ -144,8 +164,10 @@
         <option value="$PROJECT_DIR$/build.sbt" />
         <option value="$PROJECT_DIR$/src/main/scala/jkm/cineclub/raft/LogEntryLevelDBJava.scala" />
         <option value="$PROJECT_DIR$/src/main/scala/jkm/cineclub/raft/LogEntryLevelDB.scala" />
-        <option value="$PROJECT_DIR$/src/test/scala/kjm/cineclub/raft/TestExample.scala" />
         <option value="$PROJECT_DIR$/src/main/scala/jkm/cineclub/raft/LogEntryDB.scala" />
+        <option value="$PROJECT_DIR$/src/main/scala/jkm/cineclub/raft/Repository/LogEntryLevelDB.scala" />
+        <option value="$PROJECT_DIR$/src/test/scala/kjm/cineclub/raft/TestExample.scala" />
+        <option value="$PROJECT_DIR$/src/main/scala/jkm/cineclub/raft/DBWrapper/ReqRspHandler.scala" />
       </list>
     </option>
   </component>
@@ -168,11 +190,11 @@
   </component>
   <component name="ProjectView">
     <navigator currentView="ProjectPane" proportions="" version="1" splitterProportion="0.5">
-      <flattenPackages />
+      <flattenPackages ProjectPane="false" />
       <showMembers />
       <showModules />
       <showLibraryContents />
-      <hideEmptyPackages />
+      <hideEmptyPackages ProjectPane="false" />
       <abbreviatePackageNames />
       <autoscrollToSource />
       <autoscrollFromSource />
@@ -210,8 +232,22 @@
               <option name="myItemId" value="src" />
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
+          </PATH>
+          <PATH>
             <PATH_ELEMENT>
-              <option name="myItemId" value="test" />
+              <option name="myItemId" value="scalaraft" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="scalaraft" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="src" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="main" />
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
             <PATH_ELEMENT>
@@ -219,11 +255,23 @@
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
             <PATH_ELEMENT>
+              <option name="myItemId" value="jkm" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="cineclub" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
               <option name="myItemId" value="raft" />
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
             <PATH_ELEMENT>
-              <option name="myItemId" value="TestExample.scala" />
+              <option name="myItemId" value="DBWrapper" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="ReqRspHandler.scala" />
               <option name="myItemType" value="org.jetbrains.plugins.scala.components.ScalaDefsProjectViewProvider$ScalaFileTreeNode" />
             </PATH_ELEMENT>
           </PATH>
@@ -249,11 +297,23 @@
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
             <PATH_ELEMENT>
+              <option name="myItemId" value="jkm" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="cineclub" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
               <option name="myItemId" value="raft" />
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
             <PATH_ELEMENT>
-              <option name="myItemId" value="LogEntryLevelDBJava.scala" />
+              <option name="myItemId" value="DBWrapper" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="MsgBuffer.scala" />
               <option name="myItemType" value="org.jetbrains.plugins.scala.components.ScalaDefsProjectViewProvider$ScalaFileTreeNode" />
             </PATH_ELEMENT>
           </PATH>
@@ -279,42 +339,16 @@
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
             <PATH_ELEMENT>
-              <option name="myItemId" value="raft" />
+              <option name="myItemId" value="jkm" />
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
             <PATH_ELEMENT>
-              <option name="myItemId" value="LogEntryLevelDB.scala" />
-              <option name="myItemType" value="org.jetbrains.plugins.scala.components.ScalaDefsProjectViewProvider$ScalaFileTreeNode" />
-            </PATH_ELEMENT>
-          </PATH>
-          <PATH>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="scalaraft" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="scalaraft" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="src" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="main" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="scala" />
+              <option name="myItemId" value="cineclub" />
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
             <PATH_ELEMENT>
               <option name="myItemId" value="raft" />
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="LogEntryDB.scala" />
-              <option name="myItemType" value="org.jetbrains.plugins.scala.components.ScalaDefsProjectViewProvider$ScalaFileTreeNode" />
             </PATH_ELEMENT>
           </PATH>
         </subPane>
@@ -341,6 +375,7 @@
   </component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/src/main/scala/jkm/cineclub/raft/DBWrapper" />
       <recent name="$PROJECT_DIR$/src/main/scala/jkm/cineclub/raft" />
     </key>
   </component>
@@ -613,7 +648,11 @@
       <created>1387100449670</created>
       <updated>1387100449670</updated>
     </task>
-    <option name="localTasksCounter" value="12" />
+    <task id="LOCAL-00012" summary="...">
+      <created>1387108013973</created>
+      <updated>1387108013973</updated>
+    </task>
+    <option name="localTasksCounter" value="13" />
     <servers />
   </component>
   <component name="ToolWindowManager">
@@ -709,26 +748,26 @@
     <option name="FILTER_TARGETS" value="false" />
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/src/main/scala/jkm/cineclub/raft/LogEntryDB.scala">
+    <entry file="file://$PROJECT_DIR$/src/main/scala/jkm/cineclub/raft/DB/LogEntryDB.scala">
       <provider selected="true" editor-type-id="text-editor">
         <state line="26" column="38" selection-start="604" selection-end="604" vertical-scroll-proportion="0.0">
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/scala/jkm/cineclub/raft/LogEntryLevelDBJava.scala">
+    <entry file="file://$PROJECT_DIR$/src/main/scala/jkm/cineclub/raft/DB/LogEntryLevelDBJava.scala">
       <provider selected="true" editor-type-id="text-editor">
         <state line="198" column="57" selection-start="5531" selection-end="5531" vertical-scroll-proportion="0.0">
-          <folding />
+          <folding>
+            <element signature="e#30#55#0" expanded="false" />
+          </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/scala/jkm/cineclub/raft/LogEntryLevelDB.scala">
+    <entry file="file://$PROJECT_DIR$/src/main/scala/jkm/cineclub/raft/DB/LogEntryLevelDB.scala">
       <provider selected="true" editor-type-id="text-editor">
         <state line="99" column="107" selection-start="3339" selection-end="3339" vertical-scroll-proportion="0.0">
-          <folding>
-            <element signature="e#27#52#0" expanded="true" />
-          </folding>
+          <folding />
         </state>
       </provider>
     </entry>
@@ -760,34 +799,48 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/scala/jkm/cineclub/raft/LogEntryLevelDBJava.scala">
+    <entry file="file://$PROJECT_DIR$/src/main/scala/jkm/cineclub/raft/DB/LogEntryDB.scala">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="22" column="17" selection-start="604" selection-end="604" vertical-scroll-proportion="0.0">
+        <state line="24" column="32" selection-start="523" selection-end="523" vertical-scroll-proportion="0.0">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/scala/jkm/cineclub/raft/DB/LogEntryLevelDBJava.scala">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="21" column="0" selection-start="606" selection-end="606" vertical-scroll-proportion="0.0">
+          <folding>
+            <element signature="e#30#55#0" expanded="false" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/scala/jkm/cineclub/raft/DB/LogEntryLevelDB.scala">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="11" column="16" selection-start="238" selection-end="238" vertical-scroll-proportion="-5.1923075">
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/test/scala/kjm/cineclub/raft/TestExample.scala">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="171" column="5" selection-start="3875" selection-end="3875" vertical-scroll-proportion="0.0">
+        <state line="171" column="3" selection-start="3878" selection-end="3878" vertical-scroll-proportion="0.0">
           <folding>
             <element signature="e#188#219#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/scala/jkm/cineclub/raft/LogEntryLevelDB.scala">
+    <entry file="file://$PROJECT_DIR$/src/main/scala/jkm/cineclub/raft/DBWrapper/ReqRspHandler.scala">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="23" column="79" selection-start="511" selection-end="511" vertical-scroll-proportion="6.1153846">
-          <folding>
-            <element signature="e#27#52#0" expanded="true" />
-          </folding>
+        <state line="20" column="56" selection-start="580" selection-end="580" vertical-scroll-proportion="0.0">
+          <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/scala/jkm/cineclub/raft/LogEntryDB.scala">
+    <entry file="file://$PROJECT_DIR$/src/main/scala/jkm/cineclub/raft/DBWrapper/MsgBuffer.scala">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="23" column="14" selection-start="447" selection-end="455" vertical-scroll-proportion="0.5693069">
+        <state line="36" column="7" selection-start="632" selection-end="632" vertical-scroll-proportion="0.8910891">
           <folding />
         </state>
       </provider>
