@@ -17,12 +17,13 @@ import scala.Some
  * Time: 4:20 PM
  * To change this template use File | Settings | File Templates.
  */
-class LogEntryLevelDBJava(val dbName:String,val dbRootPath:String=null) extends LogEntryDB  {
+class LogEntryLevelDBJava(val dbName:String,val dbRootPath:String=null) /*extends LogEntryDB*/  {
   val db :DB = factory.open(new File(dbRootPath,dbName), new Options())
   implicit val writeOption=new WriteOptions().sync(true)
 
   import LogEntryDB._
 
+  type Index= Int
   type ReverseIdx = Long
   type ReverseIdxBytes = Array[Byte]
 

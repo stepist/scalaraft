@@ -28,13 +28,18 @@ class LogEntryLevelDB(val dbName:String,val dbRootPath:String=null) extends LogE
   type BA = Array[Byte]
   type DBEntry = Map.Entry[BA,BA]
 
-  def unPickle[T: Unpickler: FastTypeTag](data:BA):T = binary.toBinaryPickle(data).unpickle[T]
+  def unPickle[T: Unpickler: FastTypeTag](data:BA):Option[T] ={
+    if (data==null) None
+    else Some(data).map(binary.toBinaryPickle(_).unpickle[T])
+  }
+
+
   def doPickle[T: SPickler: FastTypeTag](a:T):BA=a.pickle.value
   //def unPickle2[T: Unpickler: FastTypeTag](data:BA,tt:T):T = binary.toBinaryPickle(data).unpickle[T]
 
 
   type IterInit = (DBIterator) => Unit
-  type IterExec[T] = (DBEntry)=> T
+  type IterExec[T] = (DBEntry)=> Option[T]
 
   def translateIndex(index:Index):Index = Long.MaxValue-index
   implicit def translateIndexToKey(index:Index):BA = doPickle(translateIndex(index))
@@ -66,12 +71,8 @@ class LogEntryLevelDB(val dbName:String,val dbRootPath:String=null) extends LogE
   }
 
   implicit class levelDBIteration(val iterator:DBIterator) {
-    def iterateBack[A](n:Int, initExec: DBIterator=>Unit,  exec: IterExec[A]):Option[List[A]] ={
-      if (n<0) return None
-
-      val tt:A = None.get
-
-      var list: List[A]= Nil
+    def iterateBack[A](n:Int, initExec: DBIterator=>Unit,  exec: IterExec[A]):List[Option[A]] ={
+      var list: List[Option[A]]= Nil
       try{
         initExec(iterator)
         var count=0
@@ -83,7 +84,7 @@ class LogEntryLevelDB(val dbName:String,val dbRootPath:String=null) extends LogE
       }
       finally iterator.close()
 
-      Some(list)
+      list
     }
   }
 
@@ -97,21 +98,28 @@ class LogEntryLevelDB(val dbName:String,val dbRootPath:String=null) extends LogE
 
   def appendEntries(logEntries : List[LogEntry]) = db.createWriteBatch batchOp( logEntries, (btc,e:LogEntry)=>batchPut(btc,e.index, doPickle(e)) )
 
-  def getEntry(index:Index) : Option[LogEntry] = Some(unPickle[LogEntry](dbGet(index)))
+  def getEntry(index:Index) : Option[LogEntry] = unPickle[LogEntry](dbGet(index))
 
-  def getLast():Option[LogEntry] = db.iterator iterateBack( 1, iterSeekToLast(_), x => unPickle[LogEntry](x.getValue) ) map(_.head)
+  def getLast():Option[LogEntry] = db.iterator iterateBack( 1, iterSeekToLast(_), x => unPickle[LogEntry](x.getValue) ) head
 
-  def getLastN(n:Int):Option[List[LogEntry]] = db.iterator iterateBack( n, iterSeekToLast(_), x => unPickle[LogEntry](x.getValue))
+  def getLastN(n:Int):List[Option[LogEntry]] = db.iterator iterateBack( n, iterSeekToLast(_), x => unPickle[LogEntry](x.getValue))
 
-  def getLastNFrom(n:Int,index:Index):Option[List[LogEntry]] = db.iterator iterateBack( n, iterSeek(_,index), x => unPickle[LogEntry](x.getValue))
+  def getLastNFrom(n:Int,index:Index):List[Option[LogEntry]] = db.iterator iterateBack( n, iterSeek(_,index), x => unPickle[LogEntry](x.getValue))
 
-  def getLastIndex():Option[Index] = db.iterator iterateBack ( 1, iterSeekToLast(_),x => unPickle[Index](x.getKey)) map(_.head)
+  def getLastIndex():Option[Index] =( db.iterator iterateBack ( 1, iterSeekToLast(_),x => unPickle[Index](x.getKey)) head ).map(translateIndex(_))
 
 
   def close = db.close
 
 }
 
+
+object Test3 extends App{
+  val a:Int=0
+  val b:String=null
+  val c=Some(b).map(_.length)
+  println(c)
+}
 object TestLogEntryLevelDB extends App{
   import LogEntryDB._
   val dbName="TestLevelDB2"
@@ -123,17 +131,43 @@ object TestLogEntryLevelDB extends App{
   }
 
 
-  val levelDB= new LogEntryLevelDB(dbName)
+  val levelDB:LogEntryDB= new LogEntryLevelDB(dbName)
 
- //for(i <- 1 to 10) levelDB.appendEntry(LogEntry(i,i+1,"test"+i))
-  //for(i <- 1 to 10) println(levelDB.getEntry(i))
+  for(i <- 1 to 10) levelDB.appendEntry(LogEntry(i,i+1,"test"+i))
+  for(i <- 1 to 10) println(levelDB.getEntry(i))
+
+
+
+  var list:List[LogEntry] = (20 to 30).map(i => LogEntry(i,i+1,"test"+i)).toList
+  levelDB.appendEntries(list)
+
+  for(i <- 20 to 30) println(levelDB.getEntry(i))
+
+  println( "lastIndex= " +levelDB.getLastIndex())
+  println( "lastEntry= " +levelDB.getLast())
+  println( "lastN="+      levelDB.getLastN(5))
+  println( "last="+ levelDB.getLastNFrom(5,23))
+
+  println( "deleteEntry=")
+  levelDB.deleteEntry(29)
+  for(i <- 20 to 30) println(levelDB.getEntry(i))
+  println( "deleteFrom=")
+  levelDB.deleteFrom(25)
+  for(i <- 20 to 30) println(levelDB.getEntry(i))
+
+  println( "lastIndex= " +levelDB.getLastIndex())
+
+
 
   //println(levelDB.doPickle(null))
-  val a:Array[Byte] = null
-  levelDB.unPickle[Int](a)
+  //val a:Array[Byte] = new Array[Byte](1)
+  //levelDB.unPickle[Int](a)
 
 
   levelDB.close
+
+  //val b:Int=None.get
+  //println(b)
 
 }
 object test extends App{
