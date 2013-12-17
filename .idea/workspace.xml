@@ -2,13 +2,14 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="2d20172a-4920-4f11-b28a-428547c6bb6f" name="Default" comment="">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/main/resources/application.conf" afterPath="$PROJECT_DIR$/src/main/resources/application.conf" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/main/resources/raft.conf" afterPath="$PROJECT_DIR$/src/main/resources/raft.conf" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/src/main/scala/jkm/cineclub/raft/PersistentState.scala" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/src/main/scala/jkm/cineclub/raft/DB/PersistentStateDB.scala" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/src/main/scala/jkm/cineclub/raft/DB/PersistentStateLevelDB.scala" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
     </list>
     <ignored path="scalaraft.iws" />
     <ignored path=".idea/workspace.xml" />
-    <file path="/Dummy.txt" changelist="2d20172a-4920-4f11-b28a-428547c6bb6f" time="1387280731311" ignored="false" />
+    <file path="/Dummy.txt" changelist="2d20172a-4920-4f11-b28a-428547c6bb6f" time="1387281022261" ignored="false" />
     <file path="/LogEntryLevelDBJava.scala" changelist="2d20172a-4920-4f11-b28a-428547c6bb6f" time="1387103805033" ignored="false" />
     <file path="/LogEntryDB.scala" changelist="2d20172a-4920-4f11-b28a-428547c6bb6f" time="1387099050157" ignored="false" />
     <file path="/LogEntryLevelDB.scala" changelist="2d20172a-4920-4f11-b28a-428547c6bb6f" time="1387105271515" ignored="false" />
@@ -24,7 +25,10 @@
     <file path="/MsgBuffer.scala" changelist="2d20172a-4920-4f11-b28a-428547c6bb6f" time="1387121905448" ignored="false" />
     <file path="/LogEntryMemroyDB.scala" changelist="2d20172a-4920-4f11-b28a-428547c6bb6f" time="1387279983565" ignored="false" />
     <file path="/.gitIgnore" changelist="2d20172a-4920-4f11-b28a-428547c6bb6f" time="1387280678669" ignored="false" />
-    <file path="/raft.conf" changelist="2d20172a-4920-4f11-b28a-428547c6bb6f" time="1387281018038" ignored="false" />
+    <file path="/raft.conf" changelist="2d20172a-4920-4f11-b28a-428547c6bb6f" time="1387281726516" ignored="false" />
+    <file path="/PersistentState.scala" changelist="2d20172a-4920-4f11-b28a-428547c6bb6f" time="1387284333698" ignored="false" />
+    <file path="/PersistentStateDB.scala" changelist="2d20172a-4920-4f11-b28a-428547c6bb6f" time="1387284393144" ignored="false" />
+    <file path="/PersistentStateLevelDB.scala" changelist="2d20172a-4920-4f11-b28a-428547c6bb6f" time="1387286199105" ignored="false" />
     <option name="TRACKING_ENABLED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -85,6 +89,24 @@
   </component>
   <component name="FileEditorManager">
     <leaf>
+      <file leaf-file-name="LogEntryDB.scala" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/main/scala/jkm/cineclub/raft/DB/LogEntryDB.scala">
+          <provider selected="true" editor-type-id="text-editor">
+            <state line="10" column="2" selection-start="208" selection-end="249" vertical-scroll-proportion="0.0">
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="LogEntryLevelDBJava.scala" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/main/scala/jkm/cineclub/raft/DB/LogEntryLevelDBJava.scala">
+          <provider selected="true" editor-type-id="text-editor">
+            <state line="20" column="59" selection-start="479" selection-end="605" vertical-scroll-proportion="0.0">
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
       <file leaf-file-name="LogEntryMemroyDB.scala" pinned="false" current="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/main/scala/jkm/cineclub/raft/DB/LogEntryMemroyDB.scala">
           <provider selected="true" editor-type-id="text-editor">
@@ -96,48 +118,10 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="application.conf" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/main/resources/application.conf">
-          <provider selected="true" editor-type-id="text-editor">
-            <state line="12" column="19" selection-start="209" selection-end="209" vertical-scroll-proportion="0.0">
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="raft.conf" pinned="false" current="true" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/src/main/resources/raft.conf">
-          <provider selected="true" editor-type-id="text-editor">
-            <state line="15" column="18" selection-start="250" selection-end="250" vertical-scroll-proportion="0.38593483">
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name=".gitIgnore" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/.gitIgnore">
-          <provider selected="true" editor-type-id="text-editor">
-            <state line="14" column="18" selection-start="126" selection-end="126" vertical-scroll-proportion="0.0">
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="LogEntryLevelDBJava.scala" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/main/scala/jkm/cineclub/raft/DB/LogEntryLevelDBJava.scala">
-          <provider selected="true" editor-type-id="text-editor">
-            <state line="21" column="0" selection-start="606" selection-end="606" vertical-scroll-proportion="0.0">
-              <folding>
-                <element signature="e#30#55#0" expanded="false" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
       <file leaf-file-name="LogEntryLevelDB.scala" pinned="false" current="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/main/scala/jkm/cineclub/raft/DB/LogEntryLevelDB.scala">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="20" column="6" selection-start="407" selection-end="407" vertical-scroll-proportion="-5.8076925">
+            <state line="46" column="36" selection-start="1289" selection-end="1297" vertical-scroll-proportion="-12.692307">
               <folding>
                 <element signature="e#30#55#0" expanded="true" />
               </folding>
@@ -145,40 +129,58 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="build.sbt" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/build.sbt">
+      <file leaf-file-name="application.conf" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/main/resources/application.conf">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="11" column="31" selection-start="276" selection-end="276" vertical-scroll-proportion="0.0">
+            <state line="12" column="0" selection-start="209" selection-end="209" vertical-scroll-proportion="0.0">
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="TestExample.scala" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/test/scala/kjm/cineclub/raft/TestExample.scala">
+      <file leaf-file-name="raft.conf" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/main/resources/raft.conf">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="137" column="6" selection-start="3234" selection-end="3234" vertical-scroll-proportion="0.0">
+            <state line="1" column="2" selection-start="9" selection-end="33" vertical-scroll-proportion="0.0">
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name=".gitignore" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/.gitignore">
+          <provider selected="true" editor-type-id="text-editor">
+            <state line="14" column="0" selection-start="126" selection-end="126" vertical-scroll-proportion="0.0">
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="PersistentState.scala" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/main/scala/jkm/cineclub/raft/PersistentState.scala">
+          <provider selected="true" editor-type-id="text-editor">
+            <state line="40" column="6" selection-start="1745" selection-end="1745" vertical-scroll-proportion="0.0">
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="PersistentStateDB.scala" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/main/scala/jkm/cineclub/raft/DB/PersistentStateDB.scala">
+          <provider selected="true" editor-type-id="text-editor">
+            <state line="15" column="29" selection-start="329" selection-end="329" vertical-scroll-proportion="0.0">
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="PersistentStateLevelDB.scala" pinned="false" current="true" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/src/main/scala/jkm/cineclub/raft/DB/PersistentStateLevelDB.scala">
+          <provider selected="true" editor-type-id="text-editor">
+            <state line="51" column="141" selection-start="1738" selection-end="1738" vertical-scroll-proportion="0.58833617">
               <folding>
-                <element signature="e#188#219#0" expanded="true" />
+                <element signature="e#30#70#0" expanded="true" />
               </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="ReqRspHandler.scala" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/main/scala/jkm/cineclub/raft/DBWrapper/ReqRspHandler.scala">
-          <provider selected="true" editor-type-id="text-editor">
-            <state line="28" column="15" selection-start="872" selection-end="881" vertical-scroll-proportion="0.0">
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="MsgBuffer.scala" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/main/scala/jkm/cineclub/raft/DBWrapper/MsgBuffer.scala">
-          <provider selected="true" editor-type-id="text-editor">
-            <state line="79" column="24" selection-start="1479" selection-end="1479" vertical-scroll-proportion="0.0">
-              <folding />
             </state>
           </provider>
         </entry>
@@ -213,6 +215,9 @@
         <option value="$PROJECT_DIR$/.gitIgnore" />
         <option value="$PROJECT_DIR$/src/main/resources/application.conf" />
         <option value="$PROJECT_DIR$/src/main/resources/raft.conf" />
+        <option value="$PROJECT_DIR$/src/main/scala/jkm/cineclub/raft/PersistentState.scala" />
+        <option value="$PROJECT_DIR$/src/main/scala/jkm/cineclub/raft/DB/PersistentStateDB.scala" />
+        <option value="$PROJECT_DIR$/src/main/scala/jkm/cineclub/raft/DB/PersistentStateLevelDB.scala" />
       </list>
     </option>
   </component>
@@ -334,6 +339,208 @@
             <PATH_ELEMENT>
               <option name="myItemId" value="raft" />
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="PersistentState.scala" />
+              <option name="myItemType" value="org.jetbrains.plugins.scala.components.ScalaDefsProjectViewProvider$ScalaFileTreeNode" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="scalaraft" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="scalaraft" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="src" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="main" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="scala" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="jkm" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="cineclub" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="raft" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="scalaraft" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="scalaraft" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="src" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="main" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="scala" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="jkm" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="cineclub" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="raft" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="DB" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="scalaraft" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="scalaraft" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="src" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="main" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="scala" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="jkm" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="cineclub" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="raft" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="DB" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="LogEntryLevelDBJava.scala" />
+              <option name="myItemType" value="org.jetbrains.plugins.scala.components.ScalaDefsProjectViewProvider$ScalaFileTreeNode" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="scalaraft" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="scalaraft" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="src" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="main" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="scala" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="jkm" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="cineclub" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="raft" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="DB" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="LogEntryLevelDB.scala" />
+              <option name="myItemType" value="org.jetbrains.plugins.scala.components.ScalaDefsProjectViewProvider$ScalaFileTreeNode" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="scalaraft" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="scalaraft" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="src" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="main" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="scala" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="jkm" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="cineclub" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="raft" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="DB" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="LogEntryDB.scala" />
+              <option name="myItemType" value="org.jetbrains.plugins.scala.components.ScalaDefsProjectViewProvider$ScalaFileTreeNode" />
             </PATH_ELEMENT>
           </PATH>
           <PATH>
@@ -677,7 +884,11 @@
       <created>1387280738793</created>
       <updated>1387280738793</updated>
     </task>
-    <option name="localTasksCounter" value="17" />
+    <task id="LOCAL-00017" summary="...">
+      <created>1387281031589</created>
+      <updated>1387281031589</updated>
+    </task>
+    <option name="localTasksCounter" value="18" />
     <servers />
   </component>
   <component name="ToolWindowManager">
@@ -773,33 +984,6 @@
     <option name="FILTER_TARGETS" value="false" />
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/src/main/scala/jkm/cineclub/raft/DB/LogEntryLevelDBJava.scala">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="198" column="57" selection-start="5531" selection-end="5531" vertical-scroll-proportion="0.0">
-          <folding>
-            <element signature="e#30#55#0" expanded="false" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/scala/jkm/cineclub/raft/DB/LogEntryLevelDB.scala">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="99" column="107" selection-start="3339" selection-end="3339" vertical-scroll-proportion="0.0">
-          <folding>
-            <element signature="e#30#55#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/test/scala/kjm/cineclub/raft/TestExample.scala">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="16" column="7" selection-start="244" selection-end="244" vertical-scroll-proportion="0.0">
-          <folding>
-            <element signature="e#188#219#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/build.sbt">
       <provider selected="true" editor-type-id="text-editor">
         <state line="29" column="74" selection-start="854" selection-end="854" vertical-scroll-proportion="0.0">
@@ -810,15 +994,6 @@
     <entry file="file://$PROJECT_DIR$/../scalaraft2/scalaraft.iml">
       <provider selected="true" editor-type-id="text-editor">
         <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0" />
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/scala/jkm/cineclub/raft/DB/LogEntryLevelDBJava.scala">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="21" column="0" selection-start="606" selection-end="606" vertical-scroll-proportion="0.0">
-          <folding>
-            <element signature="e#30#55#0" expanded="false" />
-          </folding>
-        </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/main/scala/jkm/cineclub/raft/DBWrapper/ReqRspHandler.scala">
@@ -842,22 +1017,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/scala/jkm/cineclub/raft/DB/LogEntryDB.scala">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="32" column="0" selection-start="681" selection-end="681" vertical-scroll-proportion="0.0">
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/scala/jkm/cineclub/raft/DB/LogEntryLevelDB.scala">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="20" column="6" selection-start="407" selection-end="407" vertical-scroll-proportion="-5.8076925">
-          <folding>
-            <element signature="e#30#55#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/main/scala/jkm/cineclub/raft/DB/LogEntryMemroyDB.scala">
       <provider selected="true" editor-type-id="text-editor">
         <state line="39" column="1" selection-start="1141" selection-end="1141" vertical-scroll-proportion="0.0">
@@ -869,31 +1028,77 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/test/scala/kjm/cineclub/raft/TestExample.scala">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="137" column="6" selection-start="3234" selection-end="3234" vertical-scroll-proportion="0.0">
+        <state line="137" column="0" selection-start="3234" selection-end="3234" vertical-scroll-proportion="0.0">
           <folding>
             <element signature="e#188#219#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/.gitIgnore">
+    <entry file="file://$PROJECT_DIR$/.gitignore">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="14" column="18" selection-start="126" selection-end="126" vertical-scroll-proportion="0.0">
+        <state line="14" column="0" selection-start="126" selection-end="126" vertical-scroll-proportion="0.0">
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/main/resources/application.conf">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="12" column="19" selection-start="209" selection-end="209" vertical-scroll-proportion="0.0">
+        <state line="12" column="0" selection-start="209" selection-end="209" vertical-scroll-proportion="0.0">
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/main/resources/raft.conf">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="15" column="18" selection-start="250" selection-end="250" vertical-scroll-proportion="0.38593483">
+        <state line="1" column="2" selection-start="9" selection-end="33" vertical-scroll-proportion="0.0">
           <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/scala/jkm/cineclub/raft/DB/LogEntryDB.scala">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="10" column="2" selection-start="208" selection-end="249" vertical-scroll-proportion="0.0">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/scala/jkm/cineclub/raft/DB/LogEntryLevelDBJava.scala">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="20" column="59" selection-start="479" selection-end="605" vertical-scroll-proportion="0.0">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/scala/jkm/cineclub/raft/DB/PersistentStateDB.scala">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="15" column="29" selection-start="329" selection-end="329" vertical-scroll-proportion="0.0">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/scala/jkm/cineclub/raft/DB/LogEntryLevelDB.scala">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="46" column="36" selection-start="1289" selection-end="1297" vertical-scroll-proportion="-12.692307">
+          <folding>
+            <element signature="e#30#55#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/scala/jkm/cineclub/raft/PersistentState.scala">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="40" column="6" selection-start="1745" selection-end="1745" vertical-scroll-proportion="0.0">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/scala/jkm/cineclub/raft/DB/PersistentStateLevelDB.scala">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="51" column="141" selection-start="1738" selection-end="1738" vertical-scroll-proportion="0.58833617">
+          <folding>
+            <element signature="e#30#70#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
