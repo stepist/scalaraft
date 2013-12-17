@@ -99,5 +99,6 @@ object TestPersistentStateLevelDB extends App{
     println(d)
   }
   aaa(AA(1,"abcd"))
+  "aaa"
 
 }
