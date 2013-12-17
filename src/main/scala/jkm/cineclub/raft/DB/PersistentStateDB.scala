@@ -1,6 +1,6 @@
 package jkm.cineclub.raft.DB
 
-import jkm.cineclub.raft.PersistentState
+import jkm.cineclub.raft.PersistentState._
 
 /**
  * Created with IntelliJ IDEA.
@@ -13,6 +13,11 @@ trait PersistentStateDB {
   def dbName:String
   def dbRootPath:String
 
-  def set(ps:PersistentState)
-  def get(ps:PersistentState):PersistentState
+  def getState(dbKey:PersistentStateDBKey):Option[Any]
+  def getStates(dbKeys:List[PersistentStateDBKey]):List[(PersistentStateDBKey,Option[Any])]
+
+  def putState(dbKey:PersistentStateDBKey,data:Any):Boolean
+  def putStates( pairs:Map[PersistentStateDBKey,Any] )
+
+  def close
 }

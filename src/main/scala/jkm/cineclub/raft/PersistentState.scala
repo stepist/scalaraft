@@ -1,5 +1,8 @@
 package jkm.cineclub.raft
 
+import jkm.cineclub.raft.PersistentState._
+import jkm.cineclub.raft.PersistentState.TermInfo
+
 /**
  * Created with IntelliJ IDEA.
  * User: cineclub
@@ -37,10 +40,10 @@ object PersistentState {
 
 
 }
-import PersistentState._
+
 class PersistentState(
-  val raftMemberId:RaftMemberId=null ,
-  val myId:MyId =null,
+  val raftMemberId:RaftMemberId = null ,
+  val myId:MyId = null,
   val raftMembership:RaftMembership =null ,
   val termInfo: TermInfo =null ,
   val leaderCommitIndex: LeaderCommitIndex = -1,
