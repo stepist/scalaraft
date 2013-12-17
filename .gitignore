@@ -16,12 +16,12 @@ testLevelDB/
 TestLevelDB2/
 TestPersistentStateLevelDB/
 
-.idea/
-.idea_modules/
+
 
 # Intellij project files
 *.iml
 *.ipr
 *.iws
 .idea/
+.idea_modules/
 
