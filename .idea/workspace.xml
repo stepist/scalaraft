@@ -2,14 +2,13 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="2d20172a-4920-4f11-b28a-428547c6bb6f" name="Default" comment="">
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/src/main/scala/jkm/cineclub/raft/DB/LogEntryMemroyDB.scala" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/main/scala/jkm/cineclub/raft/DBWrapper/MsgBuffer.scala" afterPath="$PROJECT_DIR$/src/main/scala/jkm/cineclub/raft/DBWrapper/MsgBuffer.scala" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/test/scala/kjm/cineclub/raft/TestExample.scala" afterPath="$PROJECT_DIR$/src/test/scala/kjm/cineclub/raft/TestExample.scala" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/src/main/resources/application.conf" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/src/main/resources/raft.conf" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
     </list>
     <ignored path="scalaraft.iws" />
     <ignored path=".idea/workspace.xml" />
-    <file path="/Dummy.txt" changelist="2d20172a-4920-4f11-b28a-428547c6bb6f" time="1387117174093" ignored="false" />
+    <file path="/Dummy.txt" changelist="2d20172a-4920-4f11-b28a-428547c6bb6f" time="1387280102499" ignored="false" />
     <file path="/LogEntryLevelDBJava.scala" changelist="2d20172a-4920-4f11-b28a-428547c6bb6f" time="1387103805033" ignored="false" />
     <file path="/LogEntryDB.scala" changelist="2d20172a-4920-4f11-b28a-428547c6bb6f" time="1387099050157" ignored="false" />
     <file path="/LogEntryLevelDB.scala" changelist="2d20172a-4920-4f11-b28a-428547c6bb6f" time="1387105271515" ignored="false" />
@@ -87,19 +86,37 @@
       <file leaf-file-name="LogEntryDB.scala" pinned="false" current="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/main/scala/jkm/cineclub/raft/DB/LogEntryDB.scala">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="32" column="54" selection-start="681" selection-end="681" vertical-scroll-proportion="0.0">
+            <state line="32" column="0" selection-start="681" selection-end="681" vertical-scroll-proportion="0.0">
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="LogEntryMemroyDB.scala" pinned="false" current="true" current-in-tab="true">
+      <file leaf-file-name="LogEntryMemroyDB.scala" pinned="false" current="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/main/scala/jkm/cineclub/raft/DB/LogEntryMemroyDB.scala">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="39" column="72" selection-start="1141" selection-end="1141" vertical-scroll-proportion="0.74614066">
+            <state line="39" column="1" selection-start="1141" selection-end="1141" vertical-scroll-proportion="0.0">
               <folding>
                 <element signature="e#30#77#0" expanded="true" />
               </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="application.conf" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/main/resources/application.conf">
+          <provider selected="true" editor-type-id="text-editor">
+            <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0">
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="raft.conf" pinned="false" current="true" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/src/main/resources/raft.conf">
+          <provider selected="true" editor-type-id="text-editor">
+            <state line="19" column="27" selection-start="295" selection-end="295" vertical-scroll-proportion="0.48885077">
+              <folding />
             </state>
           </provider>
         </entry>
@@ -158,7 +175,7 @@
       <file leaf-file-name="MsgBuffer.scala" pinned="false" current="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/main/scala/jkm/cineclub/raft/DBWrapper/MsgBuffer.scala">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="79" column="51" selection-start="1479" selection-end="1479" vertical-scroll-proportion="0.0">
+            <state line="79" column="24" selection-start="1479" selection-end="1479" vertical-scroll-proportion="0.0">
               <folding />
             </state>
           </provider>
@@ -314,6 +331,28 @@
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
           </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="scalaraft" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="scalaraft" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="src" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="main" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="resources" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
         </subPane>
       </pane>
       <pane id="PackagesPane" />
@@ -338,6 +377,7 @@
   </component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/src/main/resources" />
       <recent name="$PROJECT_DIR$/src/main/scala/jkm/cineclub/raft/DBWrapper" />
       <recent name="$PROJECT_DIR$/src/main/scala/jkm/cineclub/raft" />
     </key>
@@ -620,14 +660,18 @@
       <created>1387117184002</created>
       <updated>1387117184002</updated>
     </task>
-    <option name="localTasksCounter" value="14" />
+    <task id="LOCAL-00014" summary="...">
+      <created>1387280108567</created>
+      <updated>1387280108567</updated>
+    </task>
+    <option name="localTasksCounter" value="15" />
     <servers />
   </component>
   <component name="ToolWindowManager">
     <frame x="0" y="0" width="1440" height="900" extended-state="0" />
     <editor active="false" />
     <layout>
-      <window_info id="Changes" active="true" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.2094763" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
+      <window_info id="Changes" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.2094763" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="JetGradle" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Palette" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
@@ -641,7 +685,7 @@
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Maven Projects" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="SLIDING" type="SLIDING" visible="false" weight="0.4" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.22094691" sideWeight="0.7905237" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Project" active="true" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.22094691" sideWeight="0.7905237" order="0" side_tool="false" content_ui="combo" />
       <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.28678304" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
       <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
@@ -780,7 +824,7 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/main/scala/jkm/cineclub/raft/DBWrapper/MsgBuffer.scala">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="79" column="51" selection-start="1479" selection-end="1479" vertical-scroll-proportion="0.0">
+        <state line="79" column="24" selection-start="1479" selection-end="1479" vertical-scroll-proportion="0.0">
           <folding />
         </state>
       </provider>
@@ -794,7 +838,7 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/main/scala/jkm/cineclub/raft/DB/LogEntryDB.scala">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="32" column="54" selection-start="681" selection-end="681" vertical-scroll-proportion="0.0">
+        <state line="32" column="0" selection-start="681" selection-end="681" vertical-scroll-proportion="0.0">
           <folding />
         </state>
       </provider>
@@ -819,10 +863,24 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/main/scala/jkm/cineclub/raft/DB/LogEntryMemroyDB.scala">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="39" column="72" selection-start="1141" selection-end="1141" vertical-scroll-proportion="0.74614066">
+        <state line="39" column="1" selection-start="1141" selection-end="1141" vertical-scroll-proportion="0.0">
           <folding>
             <element signature="e#30#77#0" expanded="true" />
           </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/resources/application.conf">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/resources/raft.conf">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="19" column="27" selection-start="295" selection-end="295" vertical-scroll-proportion="0.48885077">
+          <folding />
         </state>
       </provider>
     </entry>
