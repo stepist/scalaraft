@@ -16,7 +16,7 @@ import org.scalatest._
 import org.iq80.leveldb.impl.Iq80DBFactory._
 import java.io.File
 import org.iq80.leveldb.Options
-import jkm.cineclub.raft.DB.{LogEntryLevelDB, LogEntryDB}
+import jkm.cineclub.raft.DB.{LogEntryLevelDB, LogEntryDB,LogEntryMemroyDB}
 
 
 class LogEntryDBSpec extends FlatSpec with Matchers {
@@ -30,19 +30,24 @@ class LogEntryDBSpec extends FlatSpec with Matchers {
     stack.pop() should be (1)
   } */
 
-  def initLevelDB(dbName:String) {
+  def initLogEntryDB(dbName:String) {
+    /*
     try{
       factory.destroy(new File(dbName), new Options())
     }catch{
       case e:Exception => println(e)
-    }
+    }*/
+  }
+  def createLogEntryDB(dbName:String) : LogEntryDB ={
+    //new LogEntryLevelDB(dbName)
+    new LogEntryMemroyDB()
   }
 
   it should "append an LogEntry " in {
     import LogEntryDB._
     val dbName="TestLevelDB2"
-    initLevelDB(dbName)
-    val logEntryDB:LogEntryDB= new LogEntryLevelDB(dbName)
+    initLogEntryDB(dbName)
+    val logEntryDB:LogEntryDB= createLogEntryDB(dbName)
 
     for(i <- 1 to 10) logEntryDB.appendEntry(LogEntry(i,i+1,"test"+i))
 
@@ -60,8 +65,8 @@ class LogEntryDBSpec extends FlatSpec with Matchers {
   it should "append  LogEntryes " in {
     import LogEntryDB._
     val dbName="TestLevelDB2"
-    initLevelDB(dbName)
-    val logEntryDB:LogEntryDB= new LogEntryLevelDB(dbName)
+    initLogEntryDB(dbName)
+    val logEntryDB:LogEntryDB= createLogEntryDB(dbName)
 
     var logEntries:List[LogEntry] = (20 to 30).map(i => LogEntry(i,i+1,"test"+i)).toList
     logEntryDB.appendEntries(logEntries)
@@ -80,8 +85,8 @@ class LogEntryDBSpec extends FlatSpec with Matchers {
   it should "get last index " in {
     import LogEntryDB._
     val dbName="TestLevelDB2"
-    initLevelDB(dbName)
-    val logEntryDB:LogEntryDB= new LogEntryLevelDB(dbName)
+    initLogEntryDB(dbName)
+    val logEntryDB:LogEntryDB= createLogEntryDB(dbName)
 
     val lastIndex:Long=50
 
@@ -97,8 +102,8 @@ class LogEntryDBSpec extends FlatSpec with Matchers {
   it should "get last entry " in {
     import LogEntryDB._
     val dbName="TestLevelDB2"
-    initLevelDB(dbName)
-    val logEntryDB:LogEntryDB= new LogEntryLevelDB(dbName)
+    initLogEntryDB(dbName)
+    val logEntryDB:LogEntryDB= createLogEntryDB(dbName)
 
     val lastIndex:Int=50
 
@@ -114,8 +119,8 @@ class LogEntryDBSpec extends FlatSpec with Matchers {
   it should "get last N entry " in {
     import LogEntryDB._
     val dbName="TestLevelDB2"
-    initLevelDB(dbName)
-    val logEntryDB:LogEntryDB= new LogEntryLevelDB(dbName)
+    initLogEntryDB(dbName)
+    val logEntryDB:LogEntryDB= createLogEntryDB(dbName)
 
     val lastIndex:Int=50
     val n:Int=5
@@ -123,6 +128,7 @@ class LogEntryDBSpec extends FlatSpec with Matchers {
     for(i <- 20 to lastIndex) logEntryDB.appendEntry(LogEntry(i,i+1,"test"+i))
 
     val lastN=logEntryDB.getLastN(n)
+    println(lastN)
 
     assert(lastN.length == n)
 
@@ -138,8 +144,8 @@ class LogEntryDBSpec extends FlatSpec with Matchers {
   it should "get last N entry form some index" in {
     import LogEntryDB._
     val dbName="TestLevelDB2"
-    initLevelDB(dbName)
-    val logEntryDB:LogEntryDB= new LogEntryLevelDB(dbName)
+    initLogEntryDB(dbName)
+    val logEntryDB:LogEntryDB= createLogEntryDB(dbName)
 
     val lastIndex:Int=50
     val fromIndex:Long=40
@@ -165,8 +171,8 @@ class LogEntryDBSpec extends FlatSpec with Matchers {
   it should "ooooo " in {
     import LogEntryDB._
     val dbName="TestLevelDB2"
-    initLevelDB(dbName)
-    val logEntryDB:LogEntryDB= new LogEntryLevelDB(dbName)
+    initLogEntryDB(dbName)
+    val logEntryDB:LogEntryDB= createLogEntryDB(dbName)
 
     logEntryDB.close
   }
