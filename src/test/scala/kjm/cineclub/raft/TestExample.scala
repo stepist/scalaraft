@@ -135,6 +135,7 @@ class LogEntryDBSpec extends FlatSpec with Matchers {
     for( i<- 0 to n-1 ) {
       val ri=lastIndex-i
       assert( lastN(i) ==  Some(LogEntry(ri,ri+1,"test"+ri) ))
+
     }
 
     logEntryDB.close
