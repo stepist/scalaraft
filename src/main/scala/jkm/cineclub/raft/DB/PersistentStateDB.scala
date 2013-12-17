@@ -14,7 +14,7 @@ trait PersistentStateDB {
   def dbRootPath:String
 
   def getState(dbKey:PersistentStateDBKey):Option[Any]
-  def getStates(dbKeys:List[PersistentStateDBKey]):List[Option[Any]]
+  def getStates(dbKeys:List[PersistentStateDBKey]):List[(PersistentStateDBKey,Option[Any])]
 
   def putState(dbKey:PersistentStateDBKey,data:Any):Boolean
   def putStates( pairs:Map[PersistentStateDBKey,Any] )
