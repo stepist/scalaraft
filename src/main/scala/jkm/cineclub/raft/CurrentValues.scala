@@ -1,5 +1,7 @@
 package jkm.cineclub.raft
 
+import jkm.cineclub.raft.Raft.DBInfo
+
 /**
  * Created with IntelliJ IDEA.
  * User: cineclub
@@ -8,7 +10,7 @@ package jkm.cineclub.raft
  * To change this template use File | Settings | File Templates.
  */
 object CurrentValues {
-  import PersistentState._
+
   object MemberState{
     val Leader:Int=1
     val Follower:Int=2
@@ -38,6 +40,14 @@ object CurrentValues {
   }
 
 
+  type AkkaAddress=String
+
+
+}
+
+class CurrentValues {
+  import PersistentState._
+  import CurrentValues._
 
   var myId:MyId=null
 
@@ -47,7 +57,6 @@ object CurrentValues {
   var currentTerm:Long = -1
   var votedFor:RaftMemberId=null
 
-  type AkkaAddress=String
   var addressTable:Map[RaftMemberId,AkkaAddress]=null
   var raftMembership:RaftMembership=null
 
@@ -64,8 +73,8 @@ object CurrentValues {
     println("raftMembership="+raftMembership)
   }
 
-}
+  var persistentStateDBInfo:DBInfo=null
+  var logEntryDBInfo:DBInfo=null
 
-class CurrentValues {
-
+  var electionTimeout:Int= -1
 }

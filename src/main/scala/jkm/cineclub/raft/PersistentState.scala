@@ -46,6 +46,7 @@ object PersistentState {
   val LeaderCommitIndexDBKey:PersistentStateDBKey= "LeaderCommitIndex"
   val LastAppliedIndexDBKey:PersistentStateDBKey="LastAppliedIndex"
   val LastAppendedIndexDBKey:PersistentStateDBKey= "LastAppendedIndex"
+  val ElectionTimeoutDBKey:PersistentStateDBKey="ElectionTimeout"
 
 
 }

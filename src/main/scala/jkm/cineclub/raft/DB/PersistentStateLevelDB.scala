@@ -96,10 +96,12 @@ class PersistentStateLevelDB(val dbName:String,val dbRootPath:String=null) exten
   def setMyId(myId:MyId)=putState(MyIdDBKey,myId)
   def setRaftMembership(a:RaftMembership)=putState(RaftMembershipDBKey,a)
   def setTermInfo(a:TermInfo)=putState(TermInfoDBKey,a)
+  def setElectionTimeout(a:Int)=putState(ElectionTimeoutDBKey,a)
 
   def getMyId=getState(MyIdDBKey).get.asInstanceOf[MyId]
   def getRaftMembership=getState(RaftMembershipDBKey).get.asInstanceOf[RaftMembership]
   def getTermInfo=getState(TermInfoDBKey).get.asInstanceOf[TermInfo]
+  def getElectionTimeout=getState(ElectionTimeoutDBKey).get.asInstanceOf[Int]
 
 }
 

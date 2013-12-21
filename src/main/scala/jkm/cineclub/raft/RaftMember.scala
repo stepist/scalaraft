@@ -7,7 +7,8 @@ package jkm.cineclub.raft
  * Time: 1:47 PM
  * To change this template use File | Settings | File Templates.
  */
-class RaftMember {
+class RaftMember(currentValues:CurrentValues) {
+
 
 }
 

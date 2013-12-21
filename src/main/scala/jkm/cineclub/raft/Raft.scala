@@ -32,6 +32,8 @@ object  Raft extends App {
     var membership:RaftMembership=null
     var addressTable:Map[RaftMemberId,TcpAddress]=null
 
+    var electionTimeout:Int = -1
+
     def printValues() ={
       println("id="+id)
       println("serverAddress="+serviceAddress)
@@ -39,6 +41,7 @@ object  Raft extends App {
       println("logEntryDBInfo="+logEntryDBInfo)
       println("members="+membership)
       println("addressTable="+addressTable)
+      println("electionTimeout="+electionTimeout)
     }
   }
 
@@ -82,7 +85,8 @@ object  Raft extends App {
     raftConfig.persistentStateDBInfo=conf.getConfig(addPrefix("persistentStateDB"))
     raftConfig.logEntryDBInfo=conf.getConfig(addPrefix("logEntryDB"))
     raftConfig.membership=getRaftMembership(conf.getConfig(addPrefix("init.membership")))
-    raftConfig.addressTable=conf.getConfig("raft.addressTable").entrySet().toList.map( x=> (x.getKey,convertToTcpAddress(x.getValue))).toMap
+    raftConfig.addressTable=conf.getConfig(addPrefix("init.addressTable")).entrySet().toList.map( x=> (x.getKey,convertToTcpAddress(x.getValue))).toMap
+    raftConfig.electionTimeout=conf.getInt( addPrefix("init.electionTimeout"))
     raftConfig
   }
 
@@ -92,6 +96,9 @@ object  Raft extends App {
     val dbInfo= raftConfig.persistentStateDBInfo
     val dbFile=new File(dbInfo.dbRootPath,dbInfo.dbName)
     if (! dbFile.exists ){
+      println
+      println("Create PersistentStateDB")
+      println
       val db = new PersistentStateLevelDB(dbInfo.dbName,dbInfo.dbRootPath)
 
       //db.putState(LastAppendedIndexDBKey,0)
@@ -100,6 +107,7 @@ object  Raft extends App {
       db.putState(MyIdDBKey,raftConfig.id)
       db.putState(RaftMembershipDBKey,raftConfig.membership)
       db.putState(TermInfoDBKey, TermInfo(0,null))
+      db.putState(ElectionTimeoutDBKey,500)
 
       db.close
     }
@@ -139,25 +147,30 @@ object  Raft extends App {
   }
 
 
-  def initCurrentValues(raftConfig:RaftConfig){
+  def initCurrentValues(raftConfig:RaftConfig,currentValues:CurrentValues){
     val dbInfo= raftConfig.persistentStateDBInfo
     val db = new PersistentStateLevelDB(dbInfo.dbName,dbInfo.dbRootPath)
 
 
-     import jkm.cineclub.raft.CurrentValues
+    import jkm.cineclub.raft.CurrentValues
 
-    CurrentValues.myId = db.getMyId
+    currentValues.myId = db.getMyId
 
-    CurrentValues.memberState=CurrentValues.MemberState.Follower
-    CurrentValues.leaderId=null
+    currentValues.memberState=CurrentValues.MemberState.Follower
+    currentValues.leaderId=null
 
     val termInfo =db.getTermInfo
-    CurrentValues.currentTerm=termInfo.currentTerm
-    CurrentValues.votedFor = termInfo.votedFor
+    currentValues.currentTerm=termInfo.currentTerm
+    currentValues.votedFor = termInfo.votedFor
 
     //"akka.tcp://raft@127.0.0.1:3010/user/raftmember"
-    CurrentValues.addressTable=raftConfig.addressTable.map{ case (memberId,TcpAddress(ip,port))  => (memberId,"akka.tcp://raft@%s:%d/user/raftmember".format(ip,port))  }
-    CurrentValues.raftMembership=db.getRaftMembership
+    currentValues.addressTable=raftConfig.addressTable.map{ case (memberId,TcpAddress(ip,port))  => (memberId,"akka.tcp://raft@%s:%d/user/raftmember".format(ip,port))  }
+    currentValues.raftMembership=db.getRaftMembership
+
+    currentValues.persistentStateDBInfo=raftConfig.persistentStateDBInfo
+    currentValues.logEntryDBInfo=raftConfig.logEntryDBInfo
+
+    currentValues.electionTimeout=db.getElectionTimeout
 
     db.close
   }
@@ -169,13 +182,15 @@ object  Raft extends App {
   config.printValues()
   println
   println
-  CurrentValues.printCurrentValues
+
+  val currentValues=new CurrentValues
+  currentValues.printCurrentValues
   println
   initDBs(config)
-  CurrentValues.printCurrentValues
+  currentValues.printCurrentValues
   println()
-  initCurrentValues(config)
-  CurrentValues.printCurrentValues
+  initCurrentValues(config,currentValues)
+  currentValues.printCurrentValues
   println()
 
 
