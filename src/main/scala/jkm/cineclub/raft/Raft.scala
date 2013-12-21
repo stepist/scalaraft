@@ -107,7 +107,7 @@ object  Raft extends App {
       db.putState(MyIdDBKey,raftConfig.id)
       db.putState(RaftMembershipDBKey,raftConfig.membership)
       db.putState(TermInfoDBKey, TermInfo(0,null))
-      db.putState(ElectionTimeoutDBKey,500)
+      db.putState(ElectionTimeoutDBKey,raftConfig.electionTimeout)
 
       db.close
     }

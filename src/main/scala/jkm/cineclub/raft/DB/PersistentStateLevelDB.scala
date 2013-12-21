@@ -37,6 +37,7 @@ class PersistentStateLevelDB(val dbName:String,val dbRootPath:String=null) exten
       case RaftMemberIdDBKey =>  Some(getBP(value).unpickle[RaftMemberId])
       case RaftMembershipDBKey => Some(getBP(value).unpickle[RaftMembership])
       case TermInfoDBKey => Some(getBP(value).unpickle[TermInfo])
+      case ElectionTimeoutDBKey => Some(getBP(value).unpickle[Int])
       case _ => None
     }
   }
@@ -53,6 +54,7 @@ class PersistentStateLevelDB(val dbName:String,val dbRootPath:String=null) exten
       case RaftMemberIdDBKey if data.isInstanceOf[RaftMemberId] => data.asInstanceOf[RaftMemberId].pickle.value
       case RaftMembershipDBKey if data.isInstanceOf[RaftMembership] => data.asInstanceOf[RaftMembership].pickle.value
       case TermInfoDBKey if data.isInstanceOf[TermInfo] => data.asInstanceOf[TermInfo].pickle.value
+      case ElectionTimeoutDBKey if data.isInstanceOf[Int] => data.asInstanceOf[Int].pickle.value
       case _ => null
     }
   }
