@@ -7,7 +7,7 @@ package jkm.cineclub.raft
  * Time: 12:20 AM
  * To change this template use File | Settings | File Templates.
  */
-
+ /*
 import PersistentState._
 import jkm.cineclub.raft.DB.{PersistentStateDB, LogEntryDB}
 import LogEntryDB._
@@ -53,8 +53,23 @@ class LeaderActor extends Actor{
 
   def receive = {
     case ClientCommand(id,command) => {
-      logEntryDB.appendEntry(LogEntry(lastIndex,currentTerm,command))
+      val logEntry= LogEntry(lastIndex,currentTerm,command)
+      logEntryDB.appendEntry(logEntry)
       for ( child <- context.children) child ! Notification(lastIndex)
+      bTimeout=waitingForCommit
+
+      if (bTimeout) {
+        sender ! ClientCommandResult(id,"timeout")
+      }else {
+        val ret=applyToStateMachine(logEntry)
+        sender ! ClientCommandResult(id,ret)
+      }
+
+
+    }
+    case  commands:List[ClientCommand] => {
+      val logEntries =  commands.map{case ClientCommand(id,command) => LogEntry(lastIndex,currentTerm,command) }
+
     }
 
     case AppendOK(memberId,index) => {
@@ -81,6 +96,7 @@ class LeaderActor extends Actor{
 
 object LeaderActor {
   case class ClientCommand(id:Long,command:String)
+  case class ClientCommandResult(id:Long,ret:String)
   case class AppendOK(memberId:RaftMemberId,index:Long)
   case class Notification(lastIndex:Long)
 }
@@ -121,4 +137,4 @@ class LeaderSubActor extends Actor {
       }
     }
   }
-}
+}   */

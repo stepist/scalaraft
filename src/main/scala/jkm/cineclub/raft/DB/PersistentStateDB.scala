@@ -19,5 +19,7 @@ trait PersistentStateDB {
   def putState(dbKey:PersistentStateDBKey,data:Any):Boolean
   def putStates( pairs:Map[PersistentStateDBKey,Any] )
 
+
+
   def close
 }

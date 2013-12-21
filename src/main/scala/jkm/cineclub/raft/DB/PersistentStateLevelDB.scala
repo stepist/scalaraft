@@ -83,6 +83,24 @@ class PersistentStateLevelDB(val dbName:String,val dbRootPath:String=null) exten
 
   def close=db.close
 
+
+
+  /*val RaftMemberIdDBKey:PersistentStateDBKey="RaftMemberId"
+  val MyIdDBKey:PersistentStateDBKey= "MyId"
+  val RaftMembershipDBKey:PersistentStateDBKey= "RaftMembership"
+  val TermInfoDBKey:PersistentStateDBKey= "TermInfo"
+  val LeaderCommitIndexDBKey:PersistentStateDBKey= "LeaderCommitIndex"
+  val LastAppliedIndexDBKey:PersistentStateDBKey="LastAppliedIndex"
+  val LastAppendedIndexDBKey:PersistentStateDBKey= "LastAppendedIndex"*/
+
+  def setMyId(myId:MyId)=putState(MyIdDBKey,myId)
+  def setRaftMembership(a:RaftMembership)=putState(RaftMembershipDBKey,a)
+  def setTermInfo(a:TermInfo)=putState(TermInfoDBKey,a)
+
+  def getMyId=getState(MyIdDBKey).get.asInstanceOf[MyId]
+  def getRaftMembership=getState(RaftMembershipDBKey).get.asInstanceOf[RaftMembership]
+  def getTermInfo=getState(TermInfoDBKey).get.asInstanceOf[TermInfo]
+
 }
 
 

@@ -17,8 +17,17 @@ object PersistentState {
   object RaftMembership{
     val RaftMembershipConfigNormal=1
     val RaftMembershipConfigJoint=2
+
+    def getConfigType(configTypeStr:String):Int ={
+      configTypeStr match {
+        case "normal" => RaftMembershipConfigNormal
+        case "joint"  => RaftMembershipConfigJoint
+        case _ => -1
+      }
+    }
   }
-  case class RaftMembership( configType:Int , newMembership:List[RaftMemberId], oldMembership:List[RaftMemberId])
+
+  case class RaftMembership( configType:Int , newMembers:List[RaftMemberId], oldMembers:List[RaftMemberId])
 
   case class TermInfo(currentTerm :Long,votedFor :RaftMemberId )
 

@@ -9,6 +9,7 @@ package jkm.cineclub.raft
  * To change this template use File | Settings | File Templates.
  */
 
+/*
 import PersistentState._
 import jkm.cineclub.raft.DB.{PersistentStateDB, LogEntryDB}
 import LogEntryDB._
@@ -40,7 +41,7 @@ class CandidateActor extends Actor{
     val lastLogEntry= logEntryDB.getLast().get
 
     if (memberShip.configType==RaftMembership.RaftMembershipConfigNormal ) {
-        for ( memberId <- memberShip.newMembership) {
+        for ( memberId <- memberShip.newMembers) {
           context.actorSelection(addressTable(memberId)) ! RequestVoteRPC(currentTerm,myId ,lastLogEntry.index ,lastLogEntry.term )
         }
     }
@@ -53,7 +54,7 @@ class CandidateActor extends Actor{
            val a=sender
            if (voteGranted) aquiredVotes=aquiredVotes + a
 
-           if (aquiredVotes.size > memberShip.newMembership.size/2 )  becomeLeader
+           if (aquiredVotes.size > memberShip.newMembers.size/2 )  becomeLeader
 
          }
 
@@ -63,3 +64,4 @@ class CandidateActor extends Actor{
      }
    }
 }
+            */

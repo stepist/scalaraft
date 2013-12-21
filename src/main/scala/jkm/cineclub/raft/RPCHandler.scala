@@ -7,7 +7,7 @@ package jkm.cineclub.raft
  * Time: 10:04 PM
  * To change this template use File | Settings | File Templates.
  */
-
+ /*
 import PersistentState._
 import jkm.cineclub.raft.DB.{PersistentStateDB, LogEntryDB}
 import LogEntryDB._
@@ -114,3 +114,4 @@ object RPCHandler {
   case class  AppendEntriesRPCResult(term:Long, success:Boolean)
 
 }
+   */
