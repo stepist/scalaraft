@@ -27,7 +27,20 @@ object PersistentState {
     }
   }
 
-  case class RaftMembership( configType:Int , newMembers:List[RaftMemberId], oldMembers:List[RaftMemberId])
+  case class RaftMembership( configType:Int , newMembers:List[RaftMemberId], oldMembers:List[RaftMemberId]){
+
+    def contains(memberId:RaftMemberId):Boolean= {
+      newMembers.contains(memberId)
+    }
+    def members:List[RaftMemberId]={
+      //if(configType==RaftMembership.RaftMembershipConfigNormal) newMembers
+      //else oldMembers
+      newMembers
+    }
+
+    def getMajoritySize:Int=members.size/2+1
+
+  }
 
   case class TermInfo(currentTerm :Long,votedFor :RaftMemberId )
 

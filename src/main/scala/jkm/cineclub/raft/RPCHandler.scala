@@ -13,160 +13,12 @@ import jkm.cineclub.raft.DB.{PersistentStateDB, LogEntryDB}
 import LogEntryDB._
 import akka.actor._
 import scala.concurrent.duration._
-import RPCHandler._
-import CurrentValues._
 import scala.concurrent.Await
-import akka.pattern.ask
+import akka.pattern.{AskTimeoutException, ask}
 import akka.util.Timeout
 import scala.concurrent.duration._
-
-class RPCHandler extends Actor{
-
-
-  val logEntryDB:LogEntryDB=null
-  val persistentStateDB:PersistentStateDB=null
-
-  val electionTimeout= 500 milliseconds
-
-  context.setReceiveTimeout(electionTimeout)
-
-  def resetTimeout=context.setReceiveTimeout(electionTimeout)
-  def stepDown= {
-    currentState=MemberState.Follower
-  }
-
-  def convertToCandidate  ={
-
-  }
-
-  def compareToLocalLog(lastLogIndex:Long  ,lastLogTerm:Long):Boolean
-
-  val raftMemeberStateManager:ActorRef=null
-  val currentValues:CurrentValues=null
-  import currentValues._
-  import RaftMemeberStateManager._
-
-  def receive = {
-
-
-    case ResetTimeout => resetTimeout
-
-
-    case RequestVoteRPC(term,candidateId ,lastLogIndex  ,lastLogTerm ) => {
-      if (term< currentTerm) {sender ! RequestVoteRPCResult(currentTerm,false)}
-      else {
-
-
-        if (term> currentTerm ) {
-          persistentStateDB.putState(TermInfoDBKey,TermInfo(term,votedFor))
-          currentTerm=term
-        }
-
-        if ( currentState == MemberState.Candidate | currentState == MemberState.Leader) stepDown
-
-
-        //From now, It's in follower State
-
-        if ( (votedFor==null | votedFor==candidateId) & compareToLocalLog(lastLogIndex  ,lastLogTerm ) ) {
-
-          persistentStateDB.putState(TermInfoDBKey,TermInfo(currentTerm,candidateId))
-          votedFor=candidateId
-
-          sender ! RequestVoteRPCResult(currentTerm,true)
-          resetTimeout
-
-        }else{
-          sender ! RequestVoteRPCResult(currentTerm,false)
-        }
-
-      }
-
-      term match {
-        case a if a<currentTerm => sender ! RequestVoteRPCResult(currentTerm,false)
-        case _ => {
-          implicit val timeout = Timeout(5 seconds)
-
-          val future = raftMemeberStateManager ? CheckTerm(term)
-          val result=Await.result(future, timeout.duration).asInstanceOf[CheckTermResult]
-
-          if ( memberState == MemberState.Candidate | memberState == MemberState.Leader) {
-            val future = raftMemeberStateManager ? StepDown()
-            val result=Await.result(future, timeout.duration).asInstanceOf[StepDownResult]
-          }
-
-
-          //From now, It's in follower State
-
-          if ( (votedFor==null | votedFor==candidateId) & compareToLocalLog(lastLogIndex  ,lastLogTerm ) ) {
-
-            persistentStateDB.putState(TermInfoDBKey,TermInfo(currentTerm,candidateId))
-            votedFor=candidateId
-
-            sender ! RequestVoteRPCResult(currentTerm,true)
-            resetTimeout
-
-          }else{
-            sender ! RequestVoteRPCResult(currentTerm,false)
-          }
-
-        }
-      }
-
-
-    }
-    case AppendEntriesRPC(term , leaderId,prevLogIndex, prevLogTerm , entries ,commitIndex ) => {
-
-      if (term< currentTerm) {sender ! AppendEntriesRPCResult(currentTerm,false)}
-      else{
-        if (term> currentTerm ) {
-          persistentStateDB.putState(TermInfoDBKey,TermInfo(term,votedFor))
-          currentTerm=term
-        }
-        if ( currentState == MemberState.Candidate | currentState == MemberState.Leader) stepDown
-
-        resetTimeout
-
-        val logEntrySome=logEntryDB.getEntry(prevLogIndex)
-        if (logEntrySome.isEmpty | logEntrySome.get.term != prevLogTerm) {sender ! AppendEntriesRPCResult(currentTerm,false)}
-        else {
-          if ( entries.size ==0 ) {sender ! AppendEntriesRPCResult(currentTerm,true)}
-          else {
-
-            if (entries.head != logEntrySome.get) logEntryDB.deleteFrom(prevLogIndex+1)
-            logEntryDB.appendEntries(entries)
-            sender ! AppendEntriesRPCResult(currentTerm,true)
-
-            //Apply newly committed entries to state machine (§5.3)
-
-          }
-        }
-
-      }
-
-      term match {
-        case a if a < currentTerm => sender ! RequestVoteRPCResult(currentTerm,false)
-        case a if a>=0  => {
-          implicit val timeout = Timeout(5 seconds)
-
-          val future = raftMemeberStateManager ? CheckTerm(term)
-          val result=Await.result(future, timeout.duration).asInstanceOf[CheckTermResult]
-
-          if ( memberState == MemberState.Candidate | memberState == MemberState.Leader) {
-            val future = raftMemeberStateManager ? StepDown()
-            val result=Await.result(future, timeout.duration).asInstanceOf[StepDownResult]
-          }
-      }
-
-
-
-
-    }
-    case ReceiveTimeout =>  {
-      if  ( currentState == MemberState.Follower) convertToCandidate
-    }
-  }
-
-}
+import RPCHandler._
+import jkm.cineclub.raft.CurrentValues.MemberState
 
 object RPCHandler {
   case class RequestVoteRPC(term:Long,candidateId :RaftMemberId ,lastLogIndex :Long  ,lastLogTerm:Long  )
@@ -179,6 +31,125 @@ object RPCHandler {
 
 }
 
+class RPCHandler(val logEntryDB:LogEntryDB ,val persistentStateDB:PersistentStateDB, val cv:CurrentValues) extends Actor{
+
+
+  def resetTimeout=context.setReceiveTimeout(cv.electionTimeout millisecond)
+
+  def compareToLocalLog(lastLogIndex:Long  ,lastLogTerm:Long):Boolean = {false}
+
+  val raftMemeberStateManager:ActorSelection=context.actorSelection("MemeberStateManager")
+
+  import RaftMemeberStateManager._
+
+
+  def checkTerm(term:Long) {
+    implicit val timeout = Timeout(5 seconds)
+    val future = raftMemeberStateManager ? CheckTerm(term)
+    try {
+      val result=Await.result(future, timeout).asInstanceOf[CheckTermResult]
+    } catch {
+      case e:AskTimeoutException =>
+    }
+  }
+
+  def stepDown {
+    implicit val timeout = Timeout(5 seconds)
+    val future = raftMemeberStateManager ? StepDown()
+    try {
+      val result=Await.result(future, timeout).asInstanceOf[StepDownResult]
+    } catch {
+      case e:AskTimeoutException =>
+    }
+  }
+
+  def becomeCandidate {
+    implicit val timeout = Timeout(5 seconds)
+    val future = raftMemeberStateManager ? BecomeCandidate()
+    try {
+      val result=Await.result(future, timeout).asInstanceOf[BecomeCandidateResult]
+    } catch {
+      case e:AskTimeoutException =>
+    }
+  }
+
+
+  def receive = {
+    case ResetTimeout => resetTimeout
+
+    case RequestVoteRPC(term,candidateId ,lastLogIndex  ,lastLogTerm ) => {
+      term match {
+        case a if a<cv.currentTerm => sender ! RequestVoteRPCResult(cv.currentTerm,false)
+        case _ => {
+
+          checkTerm(term)
+
+          //From now, It's in follower State
+
+          if ( (cv.votedFor==null | cv.votedFor==candidateId) & compareToLocalLog(lastLogIndex,lastLogTerm) ) {
+
+            persistentStateDB.putState(TermInfoDBKey,TermInfo(cv.currentTerm,votedFor=candidateId))
+            cv.votedFor=candidateId
+
+            sender ! RequestVoteRPCResult(cv.currentTerm,true)
+            resetTimeout   //?
+
+          }else{
+            sender ! RequestVoteRPCResult(cv.currentTerm,false)
+          }
+
+        }
+      }
+
+
+    }
+    case AppendEntriesRPC(term , leaderId,prevLogIndex, prevLogTerm , entries ,commitIndex ) => {
+
+      term match {
+        case a if a < cv.currentTerm => sender ! RequestVoteRPCResult(cv.currentTerm,false)
+        case a if a>=0  => {
+          checkTerm(term)
+          if ( cv.memberState == MemberState.Candidate | cv.memberState == MemberState.Leader) stepDown
+          resetTimeout
+
+          val logEntrySome=logEntryDB.getEntry(prevLogIndex)
+
+          if (logEntrySome.isEmpty | logEntrySome.get.term != prevLogTerm) {
+
+            sender ! AppendEntriesRPCResult(cv.currentTerm,false)
+
+          } else {
+
+            if ( entries.size ==0 ) {
+              sender ! AppendEntriesRPCResult(cv.currentTerm,true)
+            }
+            else {
+
+              if (entries.head != logEntrySome.get) logEntryDB.deleteFrom(prevLogIndex+1)
+              logEntryDB.appendEntries(entries)
+              sender ! AppendEntriesRPCResult(cv.currentTerm,true)
+
+              //Apply newly committed entries to state machine (§5.3)
+
+            }
+          }
+
+        }
+      }
+
+
+
+
+    }
+    case ReceiveTimeout =>  {
+      if  ( cv.memberState == MemberState.Follower) becomeCandidate
+    }
+  }
+
+}
+
+
+
 
 class RaftMemeberStateManager extends Actor {
   import RaftMemeberStateManager._
@@ -187,7 +158,11 @@ class RaftMemeberStateManager extends Actor {
   val currentValues:CurrentValues=null
   import currentValues._
 
-  def stepDown
+  def stepDown ={}
+
+  def becomeCandidate={}
+
+  def becomeLeader={}
 
   def receive = {
     case CheckTerm(term) => {
@@ -196,6 +171,7 @@ class RaftMemeberStateManager extends Actor {
         persistentStateDB.putState(TermInfoDBKey,TermInfo(term,votedFor))
         currentTerm=term
         update=true
+        if ( memberState == MemberState.Candidate | memberState == MemberState.Leader) stepDown
       }
       sender ! CheckTermResult(update)
     }
@@ -212,6 +188,9 @@ object RaftMemeberStateManager {
 
   case class StepDown()
   case class StepDownResult()
+
+  case class BecomeCandidate()
+  case class BecomeCandidateResult()
 
 
 }

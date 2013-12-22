@@ -20,6 +20,18 @@ trait PersistentStateDB {
   def putStates( pairs:Map[PersistentStateDBKey,Any] )
 
 
+  def setTermInfo(a:TermInfo)
+
+  def setMyId(myId:MyId)
+  def setRaftMembership(a:RaftMembership)
+  def setElectionTimeout(a:Int)
+
+
+  def getTermInfo:TermInfo
+
+  def getMyId:MyId
+  def getRaftMembership:RaftMembership
+  def getElectionTimeout:Int
 
   def close
 }

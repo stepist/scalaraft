@@ -62,6 +62,12 @@ class CurrentValues {
 
   var lastIndex:Long= -1
 
+  var persistentStateDBInfo:DBInfo=null
+  var logEntryDBInfo:DBInfo=null
+
+  var electionTimeout:Int= -1
+
+
   def printCurrentValues={
 
     println("myId="+myId)
@@ -72,9 +78,4 @@ class CurrentValues {
     println("addressTable="+addressTable)
     println("raftMembership="+raftMembership)
   }
-
-  var persistentStateDBInfo:DBInfo=null
-  var logEntryDBInfo:DBInfo=null
-
-  var electionTimeout:Int= -1
 }
