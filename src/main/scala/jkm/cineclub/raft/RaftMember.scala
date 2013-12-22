@@ -42,7 +42,7 @@ class RaftMember(val logEntryDB:LogEntryDB ,val persistentStateDB:PersistentStat
     cv.votedFor=votedFor
   }
 
-
+  var requestedTime:Long = 1
 
   def resetTimeout=context.setReceiveTimeout(cv.electionTimeout millisecond)
 
