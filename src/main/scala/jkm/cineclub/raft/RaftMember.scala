@@ -334,6 +334,8 @@ class LeaderSubActor(val memberId:RaftMemberId,val logEntryDB:LogEntryDB,val cv:
 }
 
 
+
+
 object RaftMemberLeader {
   case class NewLastLogIndex(lastLogIndex:Long)
   case class AppendOkNoti(memberId:RaftMemberId, lastAppendedIndex:Long)
