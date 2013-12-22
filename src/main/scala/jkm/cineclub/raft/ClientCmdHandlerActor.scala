@@ -40,7 +40,7 @@ class ClientCmdHandlerActor(val logEntryDB:LogEntryDB ,val cv:CurrentValues) ext
           val result= Await.. (future)
 
           if ( result !=Stepdown) {
-            ret=Apply To Statemachine
+            ret=result.ret
             sender ! ClientCommandResult(uid,ret,"ok")
           } else{
             sender ! ClientCommandResult(uid,"i dont know","i dont know")
