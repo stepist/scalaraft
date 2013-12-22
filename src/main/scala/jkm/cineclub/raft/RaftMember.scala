@@ -21,7 +21,7 @@ import RPCHandler._
 import jkm.cineclub.raft.CurrentValues.MemberState
 
 
-class RaftMember(val logEntryDB:LogEntryDB ,val persistentStateDB:PersistentStateDB,val cv:CurrentValues)  extends Actor {
+class RaftMember(val logEntryDB:LogEntryDB ,val persistentStateDB:PersistentStateDB,val cv:CurrentValues,val stateMachine:StateMachine)  extends Actor {
 
   import RaftRPC._
 
@@ -118,7 +118,7 @@ class RaftMember(val logEntryDB:LogEntryDB ,val persistentStateDB:PersistentStat
               logEntryDB.appendEntries(entries)
               sender ! AppendEntriesRPCResult(uid,cv.myId,   cv.currentTerm,true)
 
-              //Apply newly committed entries to state machine (§5.3)
+              stateMachine.applyEntries(entries)
 
             }
           }
