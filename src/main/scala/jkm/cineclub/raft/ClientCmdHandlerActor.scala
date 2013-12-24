@@ -60,67 +60,9 @@ class ClientCmdHandlerActor(val logEntryDB:LogEntryDB ,val cv:CurrentValues) ext
   }
 }
 
-class AppendNewEntryActor(val logEntryDB:LogEntryDB ,val cv:CurrentValues) extends Actor{
 
-
-  var steppedDown=false
-  var cmdHandleActor:ActorRef =null
-
-  var nowInOperation=false
-  var lastIndex:Long=0
-
-  var isAtLeastOneEntryOfThisTermCommited=false
-
-  def receive = {
-    case  NewEntry( )  => {
-
-      if (nowInOperation) {
-          sender ! Busy
-      }
-      else {
-
-        nowInOperation=true
-        cmdHandleActor=sender
-        lastIndex=logEntryDB.getLast().get.index + 1
-        logEntryDB.appendEntry(LogEntry(lastIndex,cv.currentTerm,command))
-         RaftMemberActor ? NewEntry
-      }
-
-    }
-
-    case Commited(lastCommitedIndex)  => {
-       if (nowInOperation &  lastIndex==lastCommitedIndex) {
-         isAtLeastOneEntryOfThisTermCommited=true
-         cmdHandleActor ! Commited
-         cmdHandleActor=null
-         nowInOperation=false
-
-
-       }
-    }
-
-    case StepDown => {
-      steppedDown=true
-       become(doNothing)
-      if ( nowInOperation ){
-        cmdHandleActor ! StepDown
-        nowInOperation=false
-        cmdHandleActor=null
-      }
-      sender ! AllCleared
-    }
-  }
-
-  def doNothing:Receive ={
-
-  }
-
-
-}
 
 object ClientCmdHandlerActor {
   case class ClientCommand(uid:Long,command:String)
   case class ClientCommandResult(uid:Long,ret:String,code:String)
-  case class AppendOK(memberId:RaftMemberId,index:Long)
-  case class Notification(lastIndex:Long)
 }

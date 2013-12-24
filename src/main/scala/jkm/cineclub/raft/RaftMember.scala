@@ -27,6 +27,44 @@ class RaftMember(val logEntryDB:LogEntryDB ,val persistentStateDB:PersistentStat
 
   import RaftRPC._
 
+  class Timer {
+    import java.util.Date
+
+    var requestedTime:Long = 0
+    var timeout:Duration = Duration.Undefined
+
+    def resetTimeout={
+      timeout=cv.electionTimeout.millis
+      context.setReceiveTimeout(timeout)
+      requestedTime=new Date().getTime
+    }
+
+    def resetTimeout(a:FiniteDuration = cv.electionTimeout.millis)={
+      timeout=a
+      context.setReceiveTimeout(timeout)
+      requestedTime=new Date().getTime
+    }
+
+    def isTimeout:Boolean ={
+      val elapsedTime= new Date().getTime - requestedTime
+      elapsedTime.millis  >= timeout
+    }
+
+    def ifTimeout(exec:() => Unit) {
+      if (isTimeout) exec()
+      else  resetTimeout
+    }
+
+    def close= {
+      requestedTime = 0
+      timeout = Duration.Undefined
+      context.setReceiveTimeout(Duration.Undefined)
+    }
+
+  }
+
+  val timer=new Timer()
+
   def setCurrentTerm(currentTerm:Long) {
     val TermInfo(term,votedFor)=persistentStateDB.getTermInfo
 
@@ -43,11 +81,6 @@ class RaftMember(val logEntryDB:LogEntryDB ,val persistentStateDB:PersistentStat
     cv.votedFor=votedFor
   }
 
-  var requestedTime:Long = 1
-
-  def resetTimeout=context.setReceiveTimeout(cv.electionTimeout millisecond)
-
-  def resetTimeout(timeout:FiniteDuration)=context.setReceiveTimeout(timeout)
 
   def receive = followerBehavior
 
@@ -80,7 +113,7 @@ class RaftMember(val logEntryDB:LogEntryDB ,val persistentStateDB:PersistentStat
           if ( isCandidateProper ) {
             setVotedFor(candidateId)
             sender ! RequestVoteRPCResult(uid,cv.myId, cv.currentTerm,true)
-            resetTimeout
+            timer.resetTimeout
           }else{
             sender ! RequestVoteRPCResult(uid,cv.myId, cv.currentTerm,false)
           }
@@ -101,7 +134,7 @@ class RaftMember(val logEntryDB:LogEntryDB ,val persistentStateDB:PersistentStat
 
           if ( term > cv.currentTerm ) setCurrentTerm(term)
 
-          resetTimeout
+          timer.resetTimeout
 
           val logEntrySome=logEntryDB.getEntry(prevLogIndex)
 
@@ -131,6 +164,13 @@ class RaftMember(val logEntryDB:LogEntryDB ,val persistentStateDB:PersistentStat
   }
 
 
+
+
+
+
+
+
+
   var requestVoteRPCUidTable:Map[RaftMemberId,Long]=null
   var requestVoteRPCUID:Long = util.Random.nextLong()
   var voteList:List[RaftMemberId]=null
@@ -143,33 +183,38 @@ class RaftMember(val logEntryDB:LogEntryDB ,val persistentStateDB:PersistentStat
     setVotedFor(cv.myId)
 
     import util.Random
-    resetTimeout(cv.electionTimeout*(1.0+Random.nextFloat)  millis)
+    timer.resetTimeout(cv.electionTimeout*(1.0+Random.nextFloat)  millis)
 
     val lastLogEntrySome= logEntryDB.getLast()
-    //  lastLogEntrySome is None  // when there is no logEntry in LogEntryDB ,   when server is launced for the first time.
-    val lastLogIndex = if (lastLogEntrySome.isEmpty) 0 else lastLogEntrySome.get.index
-    val lastLogTerm = if (lastLogEntrySome.isEmpty) 0 else lastLogEntrySome.get.term
+    val lastLogIndex = lastLogEntrySome.get.index
+    val lastLogTerm = lastLogEntrySome.get.term
 
     requestVoteRPCUidTable= Map[RaftMemberId,Long]()
     voteList=List[RaftMemberId]()
 
 
-    for ( memberId <- cv.raftMembership.members ) {
-      if (memberId != cv.myId)  {
-
+    for ( memberId <- cv.raftMembership.members if memberId != cv.myId ) {
         requestVoteRPCUID += 3
         requestVoteRPCUidTable = requestVoteRPCUidTable + (memberId -> requestVoteRPCUID)
-
         context.actorSelection(cv.addressTable(memberId)) ! RequestVoteRPC(requestVoteRPCUID,memberId,  cv.currentTerm,cv.myId ,lastLogIndex   ,lastLogTerm  )
-      }
     }
   }
+
+
+
+
 
   def followerBehavior :Receive = rpcHandlerBehavior orElse {
     case ReceiveTimeout => {
-      becomeCandidate
+      timer.ifTimeout(becomeCandidate)
     }
   }
+
+
+
+
+
+
 
   def stepDown={
     cv.memberState=MemberState.Follower
@@ -188,16 +233,14 @@ class RaftMember(val logEntryDB:LogEntryDB ,val persistentStateDB:PersistentStat
 
     }
 
-
-    //context.setReceiveTimeout(Duration.Undefined)
+    timer.resetTimeout
     context.become(followerBehavior)
-    resetTimeout
   }
 
 
   def candidateBehavior :Receive = rpcHandlerBehavior orElse {
     case ReceiveTimeout => {
-      becomeCandidate
+      timer.ifTimeout(becomeCandidate)
     }
     case RequestVoteRPCResult(uid,from,     term, voteGranted) => {
       if ( cv.raftMembership.contains(from) &  requestVoteRPCUidTable(from) == uid & term >= cv.currentTerm) {
@@ -218,6 +261,34 @@ class RaftMember(val logEntryDB:LogEntryDB ,val persistentStateDB:PersistentStat
     }
   }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   import RaftMemberLeader._
 
   var leaderSubActorTable:Map[RaftMemberId,ActorRef]= null
@@ -225,22 +296,19 @@ class RaftMember(val logEntryDB:LogEntryDB ,val persistentStateDB:PersistentStat
   var clientCmdHandlerActor:ActorRef=null
 
   def becomeLeader={
-
     nowInOperation=false
     lastIndex=0
     cmdHandleActor=null
     isAtLeastOneEntryOfThisTermCommited=false
     newLogEntry=null
 
-
     cv.memberState=MemberState.Leader
-    context.setReceiveTimeout(Duration.Undefined)
+    timer.close
     context.become(leaderBehavior)
 
     val lastEntrySome=logEntryDB.getLast
 
-
-    val nextIndex=if (lastEntrySome.isEmpty) 0 else lastEntrySome.get.index+1
+    val nextIndex=lastEntrySome.get.index+1
 
     leaderSubActorTable=Map[RaftMemberId,ActorRef]()
     lastAppendedIndexTable = Map[RaftMemberId,Long]()
@@ -270,8 +338,6 @@ class RaftMember(val logEntryDB:LogEntryDB ,val persistentStateDB:PersistentStat
   }
 
   def leaderBehavior :Receive = rpcHandlerBehavior orElse {
-
-
     case AppendEntriesRPCResult(uid,from,      term, success)  => {
       if ( cv.raftMembership.contains(from)  & term >= cv.currentTerm) {
         if (term>cv.currentTerm) {
@@ -282,25 +348,6 @@ class RaftMember(val logEntryDB:LogEntryDB ,val persistentStateDB:PersistentStat
         }
       }
     }
-
-    case NewLastLogIndex(lastLogIndex) => {
-      for ( leaderSubActor <- leaderSubActorTable.values) {
-        leaderSubActor ! NewLastLogIndex(lastLogIndex)
-      }
-    }
-
-    case AppendOkNoti(memberId, lastAppendedIndex) => {
-      lastAppendedIndexTable = lastAppendedIndexTable + (memberId -> lastAppendedIndex)
-
-
-      val lastCommitedIndex=getLastCommitedIndex(lastAppendedIndexTable)
-      clientCmdHandlerActor ! LastCommitedIndex(lastCommitedIndex)
-    }
-
-
-
-
-
 
 
 
@@ -407,6 +454,10 @@ object RaftMemberLeader {
 }
 
 object RaftRPC {
+
+  case class RPCTo(uid:Long,to:RaftMemberId)
+  case class RPCFrom(uid:Long,from:RaftMemberId)
+
   case class RequestVoteRPC(uid:Long,to:RaftMemberId ,   term:Long,candidateId :RaftMemberId ,lastLogIndex :Long  ,lastLogTerm:Long  )
   case class RequestVoteRPCResult(uid:Long,from:RaftMemberId,  term:Long, voteGranted:Boolean)
 

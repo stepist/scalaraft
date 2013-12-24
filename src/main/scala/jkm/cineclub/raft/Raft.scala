@@ -21,78 +21,7 @@ import com.typesafe.scalalogging.slf4j.Logging
  */
 object  Raft extends App  with Logging{
 
-  case class TcpAddress(hostname:String,port:Int)
-  case class DBInfo(dbName:String,dbRootPath:String)
-
-  class RaftConfig {
-    var id:RaftMemberId=null
-    var serviceAddress:TcpAddress=null
-
-    var persistentStateDBInfo:DBInfo=null
-    var logEntryDBInfo:DBInfo=null
-
-    var membership:RaftMembership=null
-    var addressTable:Map[RaftMemberId,TcpAddress]=null
-
-    var electionTimeout:Int = -1
-
-    def printValues() ={
-      println("id="+id)
-      println("serverAddress="+serviceAddress)
-      println("persistentStateDBInfo="+persistentStateDBInfo)
-      println("logEntryDBInfo="+logEntryDBInfo)
-      println("members="+membership)
-      println("addressTable="+addressTable)
-      println("electionTimeout="+electionTimeout)
-    }
-  }
-
-  def convertToTcpAddress(a:ConfigValue): TcpAddress= {
-    val address=a.unwrapped().asInstanceOf[java.util.ArrayList[Object]].toList
-    val hostname=address(0).asInstanceOf[String]
-    val port = address(1).asInstanceOf[Int]
-    TcpAddress(hostname,port)
-  }
-
-  implicit def convertConfigToTcpAddress(a:Config): TcpAddress= {
-    val hostname=a.getString("hostname")
-    val port = a.getInt("port")
-    TcpAddress(hostname,port)
-  }
-
-  implicit def convertConfigToDBInfo(a:Config):DBInfo = {
-    val dbName=a.getString("dbName")
-    var dbRootPath=a.getString("rootPath")
-    if (dbRootPath.isEmpty) dbRootPath=null
-    DBInfo(dbName,dbRootPath)
-  }
-
-  def getRaftMembership(a:Config):RaftMembership={
-    RaftMembership(
-      RaftMembership.getConfigType(a.getString("configType")),
-      a.getStringList("newMembers").toList ,
-      a.getStringList("oldMembers").toList )
-  }
-
-  def readConfig(configName:String,prefix:String):RaftConfig ={
-    val conf=ConfigFactory.load(configName)
-    if (conf==null) return null
-
-    val raftConfig=new RaftConfig
-
-    def addPrefix(path:String) =prefix+"."+ path
-
-    raftConfig.id=conf.getString(addPrefix("id"))
-    raftConfig.serviceAddress=conf.getConfig(addPrefix("serviceAddress"))
-    raftConfig.persistentStateDBInfo=conf.getConfig(addPrefix("persistentStateDB"))
-    raftConfig.logEntryDBInfo=conf.getConfig(addPrefix("logEntryDB"))
-    raftConfig.membership=getRaftMembership(conf.getConfig(addPrefix("init.membership")))
-    raftConfig.addressTable=conf.getConfig(addPrefix("init.addressTable")).entrySet().toList.map( x=> (x.getKey,convertToTcpAddress(x.getValue))).toMap
-    raftConfig.electionTimeout=conf.getInt( addPrefix("init.electionTimeout"))
-    raftConfig
-  }
-
-  //val config=readConfig("raft.conf","raft.raft01")
+  import RaftConfig._
 
   def checkExistLevelDB(dbInfo:DBInfo):Boolean ={
     val dbDir=new File(dbInfo.dbRootPath,dbInfo.dbName)
@@ -200,7 +129,7 @@ object  Raft extends App  with Logging{
 
   import jkm.cineclub.raft.CurrentValues
   val config=readConfig("raft.conf","raft.raft01")
-  config.printValues()
+  printRaftConfig(config)
   println
   println
 
@@ -215,5 +144,79 @@ object  Raft extends App  with Logging{
   println()
 
 
+
+}
+
+class RaftConfig {
+  import RaftConfig._
+  var id:RaftMemberId=null
+  var serviceAddress:TcpAddress=null
+
+  var persistentStateDBInfo:DBInfo=null
+  var logEntryDBInfo:DBInfo=null
+
+  var membership:RaftMembership=null
+  var addressTable:Map[RaftMemberId,TcpAddress]=null
+
+  var electionTimeout:Int = -1
+}
+object RaftConfig {
+  case class TcpAddress(hostname:String,port:Int)
+  case class DBInfo(dbName:String,dbRootPath:String)
+
+  def convertToTcpAddress(a:ConfigValue): TcpAddress= {
+    val address=a.unwrapped().asInstanceOf[java.util.ArrayList[Object]].toList
+    val hostname=address(0).asInstanceOf[String]
+    val port = address(1).asInstanceOf[Int]
+    TcpAddress(hostname,port)
+  }
+
+  implicit def convertConfigToTcpAddress(a:Config): TcpAddress= {
+    val hostname=a.getString("hostname")
+    val port = a.getInt("port")
+    TcpAddress(hostname,port)
+  }
+
+  implicit def convertConfigToDBInfo(a:Config):DBInfo = {
+    val dbName=a.getString("dbName")
+    var dbRootPath=a.getString("rootPath")
+    if (dbRootPath.isEmpty) dbRootPath=null
+    DBInfo(dbName,dbRootPath)
+  }
+
+  def getRaftMembership(a:Config):RaftMembership={
+    RaftMembership(
+      RaftMembership.getConfigType(a.getString("configType")),
+      a.getStringList("newMembers").toList ,
+      a.getStringList("oldMembers").toList )
+  }
+
+  def readConfig(configName:String,prefix:String):RaftConfig ={
+    val conf=ConfigFactory.load(configName)
+    if (conf==null) return null
+
+    val raftConfig=new RaftConfig
+
+    def addPrefix(path:String) =prefix+"."+ path
+
+    raftConfig.id=conf.getString(addPrefix("id"))
+    raftConfig.serviceAddress=conf.getConfig(addPrefix("serviceAddress"))
+    raftConfig.persistentStateDBInfo=conf.getConfig(addPrefix("persistentStateDB"))
+    raftConfig.logEntryDBInfo=conf.getConfig(addPrefix("logEntryDB"))
+    raftConfig.membership=getRaftMembership(conf.getConfig(addPrefix("init.membership")))
+    raftConfig.addressTable=conf.getConfig(addPrefix("init.addressTable")).entrySet().toList.map( x=> (x.getKey,convertToTcpAddress(x.getValue))).toMap
+    raftConfig.electionTimeout=conf.getInt( addPrefix("init.electionTimeout"))
+    raftConfig
+  }
+
+  def printRaftConfig(raftConfig:RaftConfig) ={
+    println("id="+raftConfig.id)
+    println("serverAddress="+raftConfig.serviceAddress)
+    println("persistentStateDBInfo="+raftConfig.persistentStateDBInfo)
+    println("logEntryDBInfo="+raftConfig.logEntryDBInfo)
+    println("members="+raftConfig.membership)
+    println("addressTable="+raftConfig.addressTable)
+    println("electionTimeout="+raftConfig.electionTimeout)
+  }
 
 }
