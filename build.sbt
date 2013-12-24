@@ -14,7 +14,7 @@ libraryDependencies ++= Seq(
   "com.novocode" % "junit-interface" % "0.7" % "test->default"
 )
 
-
+libraryDependencies += "com.typesafe" %% "scalalogging-slf4j" % "1.0.1"
 
 //libraryDependencies += "org.iq80.leveldb" % "leveldb-project" % "0.7-SNAPSHOT"
 

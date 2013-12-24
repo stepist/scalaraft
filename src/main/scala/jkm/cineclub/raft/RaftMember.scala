@@ -22,6 +22,7 @@ import jkm.cineclub.raft.CurrentValues.MemberState
 import jkm.cineclub.raft.ClientCmdHandlerActor.ClientCommand
 
 
+
 class RaftMember(val logEntryDB:LogEntryDB ,val persistentStateDB:PersistentStateDB,val cv:CurrentValues,val stateMachine:StateMachine)  extends Actor {
 
   import RaftRPC._

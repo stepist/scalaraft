@@ -34,6 +34,7 @@ class LogEntryLevelDB(val dbName:String,val dbRootPath:String=null) extends LogE
   }
 
 
+
   def doPickle[T: SPickler: FastTypeTag](a:T):BA=a.pickle.value
   //def unPickle2[T: Unpickler: FastTypeTag](data:BA,tt:T):T = binary.toBinaryPickle(data).unpickle[T]
 

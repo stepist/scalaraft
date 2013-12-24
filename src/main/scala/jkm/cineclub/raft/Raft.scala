@@ -7,8 +7,10 @@ import scala.collection.JavaConversions._
 import org.iq80.leveldb._
 import org.iq80.leveldb.impl.Iq80DBFactory._
 import java.io.File
-import jkm.cineclub.raft.DB.PersistentStateLevelDB
+import jkm.cineclub.raft.DB.{LogEntryLevelDB, PersistentStateLevelDB}
 import jkm.cineclub.raft.PersistentState._
+import jkm.cineclub.raft.DB.LogEntryDB.LogEntry
+import com.typesafe.scalalogging.slf4j.Logging
 
 /**
  * Created with IntelliJ IDEA.
@@ -17,7 +19,7 @@ import jkm.cineclub.raft.PersistentState._
  * Time: 1:52 PM
  * To change this template use File | Settings | File Templates.
  */
-object  Raft extends App {
+object  Raft extends App  with Logging{
 
   case class TcpAddress(hostname:String,port:Int)
   case class DBInfo(dbName:String,dbRootPath:String)
@@ -92,13 +94,33 @@ object  Raft extends App {
 
   //val config=readConfig("raft.conf","raft.raft01")
 
+  def checkExistLevelDB(dbInfo:DBInfo):Boolean ={
+    val dbDir=new File(dbInfo.dbRootPath,dbInfo.dbName)
+
+    if ( ! dbDir.exists() ) return false
+
+    if ( ! dbDir.isDirectory ) {
+      logger.error("Something's wrong with the Level DB Dir. It is not a directory "+dbInfo)
+      throw new RuntimeException("Something wrong with the Level DB Dir. It is not a directory "+dbInfo)
+    }
+
+    if ( dbDir.listFiles().size == 0 ) return false
+
+    if (new File(dbInfo.dbRootPath,dbInfo.dbName+"/CURRENT").exists() & new File(dbInfo.dbRootPath,dbInfo.dbName+"/LOCK").exists() ) {
+      return  true
+    }
+    else {
+      logger.error("Something's wrong with the Level DB Dir. LevelDB Files are not proper. "+dbInfo)
+      throw new RuntimeException("Something wrong with the Level DB Dir. LevelDB Files are not proper. "+dbInfo)
+    }
+  }
+
   def initPersistentStateDB(raftConfig:RaftConfig)= {
     val dbInfo= raftConfig.persistentStateDBInfo
-    val dbFile=new File(dbInfo.dbRootPath,dbInfo.dbName)
-    if (! dbFile.exists ){
-      println
-      println("Create PersistentStateDB")
-      println
+    if (! checkExistLevelDB(dbInfo) ){
+      logger.info("")
+      logger.info("Create PersistentStateDB")
+      logger.info("")
       val db = new PersistentStateLevelDB(dbInfo.dbName,dbInfo.dbRootPath)
 
       //db.putState(LastAppendedIndexDBKey,0)
@@ -115,34 +137,33 @@ object  Raft extends App {
 
   def initLogEntryDB(raftConfig:RaftConfig) ={
     val dbInfo= raftConfig.logEntryDBInfo
-    val db :DB = factory.open(new File(dbInfo.dbRootPath,dbInfo.dbName), new Options())
-    db.close
+    if (! checkExistLevelDB(dbInfo) ){
+      logger.info("")
+      logger.info("Create LogEntryLevelDB")
+      logger.info("")
+      val logEntryLevelDB = new LogEntryLevelDB(dbInfo.dbRootPath,dbInfo.dbName)
+      logEntryLevelDB.appendEntry(LogEntry(0,0,"start raft"))
+      logEntryLevelDB.close
+    }
   }
 
 
   def checkMyID(raftConfig:RaftConfig)={
-    var check:Boolean=false
-
     val dbInfo= raftConfig.persistentStateDBInfo
-    val dbFile=new File(dbInfo.dbRootPath,dbInfo.dbName)
     val db = new PersistentStateLevelDB(dbInfo.dbName,dbInfo.dbRootPath)
-    try{
-      val myId=db.getState(MyIdDBKey).get
-      check = myId==raftConfig.id
-      if (!check) println("MyID mismatch DB Value= "+myId+", config Value="+raftConfig.id)
-    }finally{
-      db.close
-    }
+    val myId=db.getState(MyIdDBKey).get
+    db.close
 
-    if (!check) throw new RuntimeException
+    if (myId!=raftConfig.id) {
+      logger.error("MyID mismatch DB Value= "+myId+", config Value="+raftConfig.id)
+      throw new RuntimeException("MyID mismatch DB Value= "+myId+", config Value="+raftConfig.id)
+    }
   }
 
 
   def initDBs(raftConfig:RaftConfig)= {
-
     initLogEntryDB(raftConfig)
     initPersistentStateDB(raftConfig)
-
     checkMyID(raftConfig)
   }
 
