@@ -1,6 +1,7 @@
 package jkm.cineclub.raft
 
-import jkm.cineclub.raft.Raft.DBInfo
+
+import jkm.cineclub.raft.RaftConfig.DBInfo
 
 /**
  * Created with IntelliJ IDEA.
@@ -66,6 +67,8 @@ class CurrentValues {
   var logEntryDBInfo:DBInfo=null
 
   var electionTimeout:Int= -1
+
+  var commitIndex:Long = -1
 
 
   def printCurrentValues={

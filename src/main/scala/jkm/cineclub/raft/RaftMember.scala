@@ -155,11 +155,21 @@ class RaftMember(val logEntryDB:LogEntryDB ,val persistentStateDB:PersistentStat
               logEntryDB.appendEntries(entries)
               sender ! AppendEntriesRPCResult(RPCFrom(uid,cv.myId),   cv.currentTerm,true)
 
-              stateMachine.applyEntries(entries)     // Async?
+
 
             }
           }
 
+          cv.commitIndex=commitIndex
+          val lastAppliedIndex=stateMachine.getLastAppliedLogEntry.index
+
+          if ( lastAppliedIndex < cv.commitIndex )
+          {
+              for( index <-  (lastAppliedIndex+1) to cv.commitIndex)  {
+                val entry=logEntryDB.getEntry(index).get
+                stateMachine.applyEntry(entry)  // Async?
+              }
+          }
         }
       }
     }
@@ -320,6 +330,10 @@ class RaftMember(val logEntryDB:LogEntryDB ,val persistentStateDB:PersistentStat
     cv.memberState=MemberState.Leader
 
 
+    val lastAppliedIndex = stateMachine.getLastAppliedLogEntry.index
+    if (cv.commitIndex < lastAppliedIndex ) cv.commitIndex=lastAppliedIndex
+
+
 
     lastIndex=logEntryDB.getLastIndex.get
 
@@ -396,6 +410,8 @@ class RaftMember(val logEntryDB:LogEntryDB ,val persistentStateDB:PersistentStat
         cmdHandleActor=null
         nowInOperation=false
       }
+
+      if (isAtLeastOneEntryOfThisTermCommited) cv.commitIndex= lastCommitedIndex
     }
     case AppendOkNoti(memberId,nextIndex ) =>{
 

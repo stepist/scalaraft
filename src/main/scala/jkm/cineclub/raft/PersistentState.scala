@@ -33,12 +33,24 @@ object PersistentState {
       newMembers.contains(memberId)
     }
     def members:List[RaftMemberId]={
-      //if(configType==RaftMembership.RaftMembershipConfigNormal) newMembers
-      //else oldMembers
-      newMembers
+      configType match {
+        case RaftMembership.RaftMembershipConfigNormal =>  newMembers
+        case RaftMembership.RaftMembershipConfigJoint =>  newMembers.toSet.union(oldMembers.toSet).toList
+      }
     }
 
     def getMajoritySize:Int=members.size/2+1
+
+    def checkMajority(a:Set[RaftMemberId]):Boolean ={
+      configType match {
+        case RaftMembership.RaftMembershipConfigNormal =>  newMembers.toSet.diff(a).size < newMembers.toSet.intersect(a).size
+        case RaftMembership.RaftMembershipConfigJoint =>  {
+          newMembers.toSet.diff(a).size < newMembers.toSet.intersect(a).size &
+            oldMembers.toSet.diff(a).size < oldMembers.toSet.intersect(a).size
+        }
+      }
+
+    }
 
   }
 
