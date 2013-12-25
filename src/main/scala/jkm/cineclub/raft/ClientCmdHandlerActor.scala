@@ -17,13 +17,14 @@ import scala.concurrent.Await
 import akka.pattern.{AskTimeoutException, ask}
 import akka.util.Timeout
 import scala.concurrent.duration._
-import RPCHandler._
 import jkm.cineclub.raft.CurrentValues.MemberState
 
 
 class ClientCmdHandlerActor(val logEntryDB:LogEntryDB ,val cv:CurrentValues) extends Actor{
 
   import ClientCmdHandlerActor._
+
+  val raftMemberActor:ActorRef=null
 
 
   def getLastIndex = {
@@ -36,16 +37,17 @@ class ClientCmdHandlerActor(val logEntryDB:LogEntryDB ,val cv:CurrentValues) ext
       cv.memberState match {
         case MemberState.Leader => {
 
-          val future = AppendNewEntryActor ? NewEntry
-          val result= Await.. (future)
+          val future = raftMemberActor ? ClientCommand(uid,command)
+          val result= Await.result(future,20 seconds).asInstanceOf[String]
 
-          if ( result !=Stepdown) {
-            ret=result.ret
-            sender ! ClientCommandResult(uid,ret,"ok")
-          } else{
-            sender ! ClientCommandResult(uid,"i dont know","i dont know")
+          // when timeout ,
+          // catch  Exception
+
+          result match {
+            case "StepDown"  => sender ! ClientCommandResult(uid,"i dont know","i dont know")
+            case "Busy" =>
+            case ret:String => sender ! ClientCommandResult(uid,ret,"ok")
           }
-
 
         }
         case MemberState.Follower => {

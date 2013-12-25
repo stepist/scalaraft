@@ -17,9 +17,8 @@ import scala.concurrent.Await
 import akka.pattern.{AskTimeoutException, ask}
 import akka.util.Timeout
 import scala.concurrent.duration._
-import RPCHandler._
 import jkm.cineclub.raft.CurrentValues.MemberState
-import jkm.cineclub.raft.ClientCmdHandlerActor.ClientCommand
+import jkm.cineclub.raft.ClientCmdHandlerActor.{ClientCommandResult, ClientCommand}
 
 class Timer(implicit val context:ActorContext,implicit val cv:CurrentValues) {
   import java.util.Date
@@ -276,9 +275,9 @@ class RaftMember(val logEntryDB:LogEntryDB ,val persistentStateDB:PersistentStat
 
     if (cv.memberState==MemberState.Leader ) {
       if ( nowInOperation ){
-        cmdHandleActor ! "StepDown"
+        tempCmdSendingAgentActor ! "StepDown"
         nowInOperation=false
-        cmdHandleActor=null
+        tempCmdSendingAgentActor=null
       }
 
       //kill LeaderSubActor
@@ -301,26 +300,37 @@ class RaftMember(val logEntryDB:LogEntryDB ,val persistentStateDB:PersistentStat
 
 
 
+  var clientCmdHandlerActor:ActorRef=null  // it is injected
+  var leaderSubActorTable:Map[RaftMemberId,ActorRef]= null  // it is created when this actor's initialization  or when membership changed
+
+
 
 
   import RaftMemberLeader._
+  import scala.collection._
   var nowInOperation=false
-  var lastIndex:Long=0
+  var lastLogIndex:Long=0
+  var lastClientCommandUid:Long=0
 
-  var cmdHandleActor:ActorRef =null
+  var tempCmdSendingAgentActor:ActorRef =null
   var isAtLeastOneEntryOfThisTermCommited=false
   var newLogEntry:LogEntry=null
 
 
+  var lastAppendedIndexTable:mutable.Map[RaftMemberId,Option[Long]]=null
 
-  var leaderSubActorTable:Map[RaftMemberId,ActorRef]= null
-  var lastAppendedIndexTable:Map[RaftMemberId,Long]=null
-  var clientCmdHandlerActor:ActorRef=null
+  def initLastAppendedIndexTable() {
+    lastAppendedIndexTable=mutable.Map()
+    for( member <- cv.raftMembership.members  if member != cv.myId ) {
+      lastAppendedIndexTable.put(member,None)
+    }
+  }
+
 
   def becomeLeader={
     nowInOperation=false
-    lastIndex=0
-    cmdHandleActor=null
+    lastLogIndex=0
+    tempCmdSendingAgentActor=null
     isAtLeastOneEntryOfThisTermCommited=false
     newLogEntry=null
 
@@ -334,47 +344,56 @@ class RaftMember(val logEntryDB:LogEntryDB ,val persistentStateDB:PersistentStat
     if (cv.commitIndex < lastAppliedIndex ) cv.commitIndex=lastAppliedIndex
 
 
+    lastLogIndex=logEntryDB.getLastIndex.get
 
-    lastIndex=logEntryDB.getLastIndex.get
+    initLastAppendedIndexTable
 
-    // when membeship changed ,  we need to change these tables.
-    leaderSubActorTable=Map[RaftMemberId,ActorRef]()
-    lastAppendedIndexTable = Map[RaftMemberId,Long]()
 
-    for (leaderSubActor <- leaderSubActorTable.values)  leaderSubActor !   StartLeaderSubActor(lastIndex)
+    import scala.concurrent.Await
+    import akka.pattern.ask
+    import akka.util.Timeout
+    import scala.concurrent.Future
 
-    //clientCmdHandlerActor=createClientCmdHandlerActor
+    var futures:List[Future[Any]]= Nil
+    for (leaderSubActor <- leaderSubActorTable.values)  {
+      futures = futures  :+ leaderSubActor ?  StartLeaderSubActor(lastLogIndex)
+    }
+
+    val initLeaderSubActorTimeoutVal=20 millis
+    for( future <- futures ) {
+      val result=Await.result(future,initLeaderSubActorTimeoutVal).asInstanceOf[String]
+      if (result!="ok") throw new RuntimeException("fail to init LeaderSubActor")
+    }
+
+
 
   }
 
-  def createcreateLeaderSubActors {
+  def createLeaderSubActors {
     for ( memberId <- cv.raftMembership.members if memberId != cv.myId ) {
       leaderSubActorTable = leaderSubActorTable + (memberId -> createLeaderSubActor(memberId))
     }
   }
-  def createClientCmdHandlerActor:ActorRef={null}
-  def createLeaderSubActor(memberId:RaftMemberId,nextIndex:Long):ActorRef = {
 
-    context.actorOf(Props[LeaderSubActor], "leader_sub_"+memberId)
-
-
+  def createLeaderSubActor(memberId:RaftMemberId):ActorRef = {
+    context.actorOf(
+      Props(classOf[LeaderSubActorDependencyInjector], memberId,logEntryDB,cv),
+      "leader_sub_"+memberId)
   }
 
-  def getLastCommitedIndex(lastAppendedIndexTable:Map[RaftMemberId,Long]):Long={
-      1
-  }
+
+
 
   def leaderBehavior :Receive = rpcHandlerBehavior orElse {
-    case AppendEntriesRPCResult(RPCFrom(uid,from),      term, success)  => {
-      if ( cv.raftMembership.contains(from)  & term >= cv.currentTerm) {
-        if (term>cv.currentTerm) {
-          setCurrentTerm(term)
-          stepDown
-        } else {
-          leaderSubActorTable(from) ! AppendEntriesRPCResult(RPCFrom(uid,from),   term,success)
-        }
+    case AppendEntriesRPCResult(RPCFrom(uid,from),      term, success)  if ( cv.raftMembership.contains(from)  & term >= cv.currentTerm)  => {
+      if (term>cv.currentTerm) {
+        setCurrentTerm(term)
+        stepDown
+      } else {
+        leaderSubActorTable(from) ! AppendEntriesRPCResult(RPCFrom(uid,from),   term,success)
       }
     }
+
 
 
 
@@ -383,48 +402,80 @@ class RaftMember(val logEntryDB:LogEntryDB ,val persistentStateDB:PersistentStat
         sender ! "Busy"
       } else {
 
+        lastClientCommandUid=uid
         nowInOperation=true
-        cmdHandleActor=sender
+        tempCmdSendingAgentActor=sender
 
-        newLogEntry =LogEntry(lastIndex,cv.currentTerm,command)
+        newLogEntry =LogEntry(lastLogIndex,cv.currentTerm,command)
         logEntryDB.appendEntry(newLogEntry)
 
-        lastIndex=logEntryDB.getLastIndex().get
+        lastLogIndex=logEntryDB.getLastIndex().get
 
-        leaderSubActorTable ! NewLastLogIndex(lastIndex)
+        for( leaderSubActor <-leaderSubActorTable.values)  leaderSubActor ! NewLastLogIndex(lastLogIndex)
       }
     }
+
+      /*
     case Commited(lastCommitedIndex)  => {
       val lastAppliedEntry=stateMachine.getLastAppliedLogEntry
       for(index <-lastAppliedEntry.index to (lastCommitedIndex - 1) ) stateMachine.applyEntry(logEntryDB.getEntry(index).get)
-      if ( lastIndex!=lastCommitedIndex)  stateMachine.applyEntry(logEntryDB.getEntry(lastCommitedIndex).get)
+      if ( lastLogIndex!=lastCommitedIndex)  stateMachine.applyEntry(logEntryDB.getEntry(lastCommitedIndex).get)
       if (isAtLeastOneEntryOfThisTermCommited)  cv.commitedIndex= lastCommitedIndex
 
-      if (nowInOperation &  lastIndex==lastCommitedIndex) {
+      if (nowInOperation &  lastLogIndex==lastCommitedIndex) {
         isAtLeastOneEntryOfThisTermCommited=true
 
         ret=stateMachine.applyEntry(newLogEntry)
 
 
-        cmdHandleActor ! StateMachineResult(ret)
-        cmdHandleActor=null
+        tempCmdSendingAgentActor ! StateMachineResult(ret)
+        tempCmdSendingAgentActor=null
+        nowInOperation=false
+      }
+
+      if (isAtLeastOneEntryOfThisTermCommited) cv.commitIndex= lastCommitedIndex
+    } */
+    case AppendOkNoti(memberId,nextIndex ) =>{
+      lastAppendedIndexTable.put(memberId,Some(nextIndex))
+
+      val lastCommitedIndex=getLastCommitedIndex(lastAppendedIndexTable)
+
+      if (nowInOperation &  lastLogIndex == lastCommitedIndex )  {
+        isAtLeastOneEntryOfThisTermCommited=true
+        val ret=stateMachine.applyEntry(newLogEntry)
+
+        tempCmdSendingAgentActor ! ClientCommandResult(lastClientCommandUid,ret,"code")
+        tempCmdSendingAgentActor=null
         nowInOperation=false
       }
 
       if (isAtLeastOneEntryOfThisTermCommited) cv.commitIndex= lastCommitedIndex
     }
-    case AppendOkNoti(memberId,nextIndex ) =>{
 
-    }
+  }
 
+  def getLastCommitedIndex(table:Map[RaftMemberId,Option[Long]]):Long={
+    //cv.raftMembership.checkMajority()
+    4
   }
 
 
 
 
+  def init {
+    createLeaderSubActors
+  }
+
 }
 
+import akka.actor.IndirectActorProducer
 
+class LeaderSubActorDependencyInjector(memberId:RaftMemberId,logEntryDB:LogEntryDB,cv:CurrentValues) extends IndirectActorProducer {
+  override def actorClass = classOf[Actor]
+  override def produce = {
+     new LeaderSubActor(memberId,logEntryDB,cv)
+  }
+}
 
 class LeaderSubActor(val memberId:RaftMemberId,val logEntryDB:LogEntryDB,val cv:CurrentValues) extends Actor {
   import RaftMemberLeader._

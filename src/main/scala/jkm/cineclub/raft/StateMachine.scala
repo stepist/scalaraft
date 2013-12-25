@@ -12,7 +12,7 @@ package jkm.cineclub.raft
 import jkm.cineclub.raft.DB.LogEntryDB.LogEntry
 
 trait StateMachine {
-  def applyEntry(logEntry:LogEntry):Boolean
-  def applyEntries(logEntries:List[LogEntry]):Boolean
+  def applyEntry(logEntry:LogEntry):String
+  def applyEntries(logEntries:List[LogEntry]):String
   def getLastAppliedLogEntry:LogEntry
 }
