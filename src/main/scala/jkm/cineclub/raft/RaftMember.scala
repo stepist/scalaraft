@@ -258,7 +258,7 @@ class RaftMember(val logEntryDB:LogEntryDB ,val persistentStateDB:PersistentStat
 
 
 
-
+  import LeaderSubActor._
 
 
   def stepDown={
@@ -273,8 +273,9 @@ class RaftMember(val logEntryDB:LogEntryDB ,val persistentStateDB:PersistentStat
 
       //kill LeaderSubActor
       for (leaderSubActor <- leaderSubActorTable.values)  {
-        val future=leaderSubActor ?   "stop"
-        val result = Await.result(future,10 millis)
+        val future=leaderSubActor ?  StopLeaderSubActor
+        val result = Await.result(future,10 millis).asInstanceOf[String]
+        if (result!="ok") throw new RuntimeException("LeaderSubActor Stop failed")
       }
 
       //clear state
@@ -326,7 +327,7 @@ class RaftMember(val logEntryDB:LogEntryDB ,val persistentStateDB:PersistentStat
     leaderSubActorTable=Map[RaftMemberId,ActorRef]()
     lastAppendedIndexTable = Map[RaftMemberId,Long]()
 
-    for (leaderSubActor <- leaderSubActorTable.values)  leaderSubActor !   NewLastLogIndex(lastIndex)
+    for (leaderSubActor <- leaderSubActorTable.values)  leaderSubActor !   StartLeaderSubActor(lastIndex)
 
     //clientCmdHandlerActor=createClientCmdHandlerActor
 
@@ -412,6 +413,7 @@ class RaftMember(val logEntryDB:LogEntryDB ,val persistentStateDB:PersistentStat
 class LeaderSubActor(val memberId:RaftMemberId,val logEntryDB:LogEntryDB,val cv:CurrentValues) extends Actor {
   import RaftMemberLeader._
   import RaftRPC._
+  import LeaderSubActor._
   import java.util.Date
 
   type RPCUid = Long
@@ -460,7 +462,7 @@ class LeaderSubActor(val memberId:RaftMemberId,val logEntryDB:LogEntryDB,val cv:
   def receive = initalState
 
   def initalState:Receive = {
-    case NewLastLogIndex(qlastLogIndex) =>{
+    case StartLeaderSubActor(qlastLogIndex) =>{
       init
       lastLogIndex=qlastLogIndex
       nextIndex=lastLogIndex+1
@@ -470,10 +472,10 @@ class LeaderSubActor(val memberId:RaftMemberId,val logEntryDB:LogEntryDB,val cv:
   }
 
    def handler:Receive={
-     case "stop" =>{
+     case StopLeaderSubActor =>{
        init
        context.become(initalState)
-       sender ! "Ok"
+       sender ! "ok"
      }
 
      case NewLastLogIndex(qlastLogIndex)  if lastLogIndex > nextIndex  =>  {
@@ -489,15 +491,17 @@ class LeaderSubActor(val memberId:RaftMemberId,val logEntryDB:LogEntryDB,val cv:
          if ( success ) {
            context.parent ! AppendOkNoti(memberId,nextIndex )
 
-           if ( nextIndex <= (lastLogIndex+1) ) {
+           if ( nextIndex < (lastLogIndex+1) ) {
              nextIndex = nextIndex+1
              snedRpc
            }
 
 
          } else {
-           nextIndex=nextIndex-1
-           snedRpc
+           if ( nextIndex >= 2) {
+             nextIndex=nextIndex-1
+             snedRpc
+           }
          }
 
          timer.resetTimeout(cv.electionTimeout*0.5 millisecond)
@@ -511,6 +515,10 @@ class LeaderSubActor(val memberId:RaftMemberId,val logEntryDB:LogEntryDB,val cv:
    }
 }
 
+object LeaderSubActor {
+  case class StartLeaderSubActor(lastLogIndex:Long)
+  case class StopLeaderSubActor()
+}
 
 
 
