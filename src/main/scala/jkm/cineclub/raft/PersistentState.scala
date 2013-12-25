@@ -31,7 +31,7 @@ object PersistentState {
   case class RaftMembership( configType:Int , newMembers:List[RaftMemberId], oldMembers:List[RaftMemberId]){
 
     def contains(memberId:RaftMemberId):Boolean= {
-      newMembers.contains(memberId)
+      members.contains(memberId)
     }
     def members:List[RaftMemberId]={
       configType match {

@@ -155,25 +155,25 @@ object  Raft extends App  with Logging{
       logEntryDB = new LogEntryLevelDB(currentValues.logEntryDBInfo),
       persistentStateDB = new PersistentStateLevelDB(currentValues.persistentStateDBInfo),
       cv=currentValues,
-      stateMachine = null
+      stateMachine = new DummyStateMachine(DBInfo(dbName =currentValues.logEntryDBInfo.dbName+".Statemachine" ,dbRootPath = null))
     )
 
+    val address=currentValues.addressTableRaw.get(currentValues.myId).get
 
+    println(address)
     val raftMemberSystem = ActorSystem("raft",
 
-      ConfigFactory.parseString("akka.remote.netty.tcp{ hostname=\""+config.serviceAddress.hostname +"\", port="+config.serviceAddress.port+" }")
+      ConfigFactory.parseString("akka.remote.netty.tcp{ hostname=\""+address.hostname +"\", port="+address.port+" }")
         .withFallback(ConfigFactory.load())
     )
 
 
 
 
-    val address=currentValues.addressTableRaw.get(currentValues.myId).get
 
-    println(address)
     val raftServiceSystem= ActorSystem("service",
 
-      ConfigFactory.parseString("akka.remote.netty.tcp{ hostname=\""+address.hostname +"\", port="+address.port+" }")
+      ConfigFactory.parseString("akka.remote.netty.tcp{ hostname=\""+config.serviceAddress.hostname +"\", port="+config.serviceAddress.port+" }")
         .withFallback(ConfigFactory.load())
     )
 

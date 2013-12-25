@@ -105,13 +105,21 @@ class LogEntryLevelDB(val dbInfo:DBInfo) extends LogEntryDB  {
 
   def getEntry(index:Index) : Option[LogEntry] = unPickle[LogEntry](dbGet(index))
 
-  def getLast():Option[LogEntry] = db.iterator iterateBack( 1, iterSeekToLast(_), x => unPickle[LogEntry](x.getValue) ) head
+  def getLast():Option[LogEntry] = {
+    //db.iterator iterateBack( 1, iterSeekToLast(_), x => unPickle[LogEntry](x.getValue) ) head
+    val list=db.iterator iterateBack( 1, iterSeekToLast(_), x => unPickle[LogEntry](x.getValue) )
+    if (list.isEmpty) None
+    else list.head
+  }
 
   def getLastN(n:Int):List[Option[LogEntry]] = db.iterator iterateBack( n, iterSeekToLast(_), x => unPickle[LogEntry](x.getValue))
 
   def getLastNFrom(n:Int,index:Index):List[Option[LogEntry]] = db.iterator iterateBack( n, iterSeek(_,index), x => unPickle[LogEntry](x.getValue))
 
-  def getLastIndex():Option[Index] =( db.iterator iterateBack ( 1, iterSeekToLast(_),x => unPickle[Index](x.getKey)) head ).map(translateIndex(_))
+  def getLastIndex():Option[Index] ={
+    if (getLast().isEmpty) None
+    else ( db.iterator iterateBack ( 1, iterSeekToLast(_),x => unPickle[Index](x.getKey)) head ).map(translateIndex(_))
+  }
 
 
   def close = db.close

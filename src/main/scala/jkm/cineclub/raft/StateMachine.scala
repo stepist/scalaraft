@@ -14,7 +14,8 @@ import jkm.cineclub.raft.DB.LogEntryDB.LogEntry
 trait StateMachine {
   def applyEntry(logEntry:LogEntry):String
   def applyEntries(logEntries:List[LogEntry]):String
-  def getLastAppliedLogEntry:LogEntry
+  //def getLastAppliedLogEntry:LogEntry
+  def getLastAppliedIndex:Long
 }
 
 object StateMachine {
