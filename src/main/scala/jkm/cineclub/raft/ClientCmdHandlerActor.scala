@@ -37,7 +37,7 @@ class ClientCmdHandlerActor(val raftCtx:RaftContext,val raftMemberActor:ActorRef
 
   import ClientCmdHandlerActor._
 
-
+  val raftMemberActorSelection = context.actorSelection(cv.addressTable(cv.myId))
 
 
   def getLastIndex = {
@@ -52,7 +52,7 @@ class ClientCmdHandlerActor(val raftCtx:RaftContext,val raftMemberActor:ActorRef
 
           implicit val timeout = Timeout(20 seconds)
 
-          val future = raftMemberActor ? ClientCommand(uid,command)
+          val future = raftMemberActorSelection ? ClientCommand(uid,command)
           val result= Await.result(future,20 seconds).asInstanceOf[String]
 
           // when timeout ,

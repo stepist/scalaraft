@@ -130,9 +130,9 @@ object  Raft extends App  with Logging{
   }
 
 
-  def startRaftMember(a:Config){
+  def startRaftMember(a:RaftConfig){
     import jkm.cineclub.raft.CurrentValues
-    val config=readConfig("raft.conf","raft.raft01")
+    val config=a //readConfig("raft.conf","raft.raft01")
     println("---- config ")
     printRaftConfig(config)
     println
@@ -159,7 +159,7 @@ object  Raft extends App  with Logging{
     )
 
 
-    val raftMemberSystem = ActorSystem("raftmember",
+    val raftMemberSystem = ActorSystem("raft",
 
       ConfigFactory.parseString("akka.remote.netty.tcp{ hostname=\""+config.serviceAddress.hostname +"\", port="+config.serviceAddress.port+" }")
         .withFallback(ConfigFactory.load())
@@ -187,58 +187,10 @@ object  Raft extends App  with Logging{
   }
 
   import jkm.cineclub.raft.CurrentValues
-  val config=readConfig("raft.conf","raft.raft01")
-  println("---- config ")
-  printRaftConfig(config)
-  println
-  println
 
-  val currentValues=new CurrentValues
-  println("---- currentValues ")
-  currentValues.printCurrentValues
-  println
-  initDBs(config)
-  println("---- currentValues   after initDB")
-  currentValues.printCurrentValues
-  println()
-  initCurrentValues(config,currentValues)
-  println("---- currentValues   after initCurrentValues")
-  currentValues.printCurrentValues
-  println()
-
-  implicit val raftCxt=RaftContext(
-    logEntryDB = new LogEntryLevelDB(currentValues.logEntryDBInfo),
-    persistentStateDB = new PersistentStateLevelDB(currentValues.persistentStateDBInfo),
-    cv=currentValues,
-    stateMachine = null
-  )
-
-
-  val raftMemberSystem = ActorSystem("raftmember",
-
-    ConfigFactory.parseString("akka.remote.netty.tcp{ hostname=\""+config.serviceAddress.hostname +"\", port="+config.serviceAddress.port+" }")
-      .withFallback(ConfigFactory.load())
-  )
-
-
-
-
-  val address=currentValues.addressTableRaw.get(currentValues.myId).get
-
-  println(address)
-  val raftServiceSystem= ActorSystem("service",
-
-    ConfigFactory.parseString("akka.remote.netty.tcp{ hostname=\""+address.hostname +"\", port="+address.port+" }")
-      .withFallback(ConfigFactory.load())
-  )
-
-  val raftmemberActor = raftMemberSystem.actorOf(
-    Props(classOf[RaftMemberDependencyInjector], raftCxt),
-    "raftmember")
-
-  val clientCmdHandlerActor = raftServiceSystem.actorOf(
-    Props(classOf[ClientCmdHandlerActorDependencyInjector], raftCxt,raftmemberActor),
-    "clientHandler")
+  startRaftMember(readConfig("raft.conf","raft.raft01"))
+  startRaftMember(readConfig("raft.conf","raft.raft02"))
+  startRaftMember(readConfig("raft.conf","raft.raft03"))
 
 
 
