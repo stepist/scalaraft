@@ -517,7 +517,7 @@ class RaftMember(val raftCtx:RaftContext)  extends Actor with ActorLogging  {
 
   def getLastCommitedIndex(table:MutableMap[RaftMemberId,Option[Long]]):Long={
     //cv.raftMembership.checkMajority()
-    4
+    4//Todo !!!!!!!!!
   }
 
 
