@@ -11,7 +11,8 @@ import jkm.cineclub.raft.DB.{PersistentStateDB, LogEntryDB, LogEntryLevelDB, Per
 import jkm.cineclub.raft.PersistentState._
 import jkm.cineclub.raft.DB.LogEntryDB.LogEntry
 import com.typesafe.scalalogging.slf4j.Logging
-import akka.actor.{Props, ActorSystem}
+import akka.actor.{Inbox, Props, ActorSystem}
+import jkm.cineclub.raft.ClientCmdHandlerActor.ClientCommand
 
 /**
  * Created with IntelliJ IDEA.
@@ -193,7 +194,41 @@ object  Raft extends App  with Logging{
   startRaftMember(readConfig("raft.conf","raft.raft03"))
 
 
+  Thread.sleep(2*1000)
 
+  import akka.pattern.ask
+  import scala.concurrent.duration._
+  import akka.actor.dsl._
+  import scala.concurrent.Await
+  import akka.pattern.ask
+  import akka.util.Timeout
+  import scala.concurrent.duration._
+
+  implicit val testSystem=ActorSystem("testSystem")
+
+  //implicit val i = inbox()
+  val target=testSystem.actorSelection(  "akka.tcp://service@127.0.0.1:3552/user/clientHandler" )
+  println
+  println
+  println
+  println
+  println
+  println
+  println
+  println
+  println
+  println
+  println
+  println
+  println
+  println
+
+
+  //inbox.send(target, ClientCommand(342,"test"))
+  target ! ClientCommand(342,"test")
+ // inbox.send(,"adfasd")
+
+ // println("Inbox received : "+inbox.receive(4 seconds) )
 
 
 }

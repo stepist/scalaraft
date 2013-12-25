@@ -152,7 +152,11 @@ class RaftMember(val raftCtx:RaftContext)  extends Actor with ActorLogging  {
 
       if (isValidRPCReq)
       term match {
-        case a if a < cv.currentTerm => sender ! AppendEntriesRPCResult(RPCFrom(uid,cv.myId),    cv.currentTerm,false)
+        case a if a < cv.currentTerm =>{
+          sender ! AppendEntriesRPCResult(RPCFrom(uid,cv.myId),    cv.currentTerm,false)
+          println("send    "+AppendEntriesRPCResult(RPCFrom(uid,cv.myId),    cv.currentTerm,false))
+
+        }
         case _ => {
 
           if ( term > cv.currentTerm ) setCurrentTerm(term)
@@ -167,19 +171,19 @@ class RaftMember(val raftCtx:RaftContext)  extends Actor with ActorLogging  {
           if (logEntrySome.isEmpty | logEntrySome.get.term != prevLogTerm) {
 
             sender ! AppendEntriesRPCResult(RPCFrom(uid,cv.myId),   cv.currentTerm,false)
-            println("-----------------")
+            println("send    "+AppendEntriesRPCResult(RPCFrom(uid,cv.myId),   cv.currentTerm,false))
 
           } else {
 
             if ( entries.size ==0 ) {
               sender ! AppendEntriesRPCResult(RPCFrom(uid,cv.myId),   cv.currentTerm,true)
-              println("-----------------")
+              println("send    "+AppendEntriesRPCResult(RPCFrom(uid,cv.myId),   cv.currentTerm,true))
             } else {
 
               if (entries.head != logEntrySome.get) logEntryDB.deleteFrom(prevLogIndex+1)
               logEntryDB.appendEntries(entries)
               sender ! AppendEntriesRPCResult(RPCFrom(uid,cv.myId),   cv.currentTerm,true)
-              println("-----------------")
+              println("send    "+AppendEntriesRPCResult(RPCFrom(uid,cv.myId),   cv.currentTerm,true))
 
 
 
@@ -362,9 +366,14 @@ class RaftMember(val raftCtx:RaftContext)  extends Actor with ActorLogging  {
 
 
   def becomeLeader={
+    println
+    println
     println("----------------------------")
     println("-------becomeLeader---------")
+    println(cv.myId)
     println("----------------------------")
+    println
+    println
     nowInOperation=false
     lastLogIndex=0
     tempCmdSendingAgentActor=null
@@ -441,6 +450,15 @@ class RaftMember(val raftCtx:RaftContext)  extends Actor with ActorLogging  {
 
 
     case ClientCommand(uid,command) =>  {
+      println("---------------------------------------------------------------")
+      println("---------------------------------------------------------------")
+      println("---------------------------------------------------------------")
+      println("---------------------------------------------------------------")
+      println(ClientCommand(uid,command))
+      println("---------------------------------------------------------------")
+      println("---------------------------------------------------------------")
+      println("---------------------------------------------------------------")
+      println("---------------------------------------------------------------")
       if (nowInOperation) {
         sender ! "Busy"
       } else {
@@ -561,7 +579,7 @@ class LeaderSubActor(val memberId:RaftMemberId,implicit val logEntryDB:LogEntryD
     val target=  context.actorSelection(cv.addressTable(memberId))
     val rpc =  AppendEntriesRPC( RPCTo(uid,memberId),
       cv.currentTerm ,cv.myId,prevLogIndex, prevLogTerm , entries ,commitedIndex )
-    println(rpc)
+    println("send    "+rpc)
 
     target ! rpc
     sentedRPC=Some(SentedRPC(uid,new Date().getTime))
@@ -608,6 +626,7 @@ class LeaderSubActor(val memberId:RaftMemberId,implicit val logEntryDB:LogEntryD
      }
 
      case AppendEntriesRPCResult(RPCFrom(uid,from),    term, success)  if  memberId==from  => {
+       println("received  "+AppendEntriesRPCResult(RPCFrom(uid,from),    term, success))
        if (sentedRPC.isDefined & sentedRPC.get.uid == uid) {
          recvRpc
 

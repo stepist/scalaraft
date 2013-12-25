@@ -46,6 +46,7 @@ class ClientCmdHandlerActor(val raftCtx:RaftContext,val raftMemberActor:ActorRef
 
   def receive ={
     case ClientCommand(uid,command) => {
+      println(ClientCommand(uid,command))
 
       cv.memberState match {
         case MemberState.Leader => {
@@ -67,9 +68,11 @@ class ClientCmdHandlerActor(val raftCtx:RaftContext,val raftMemberActor:ActorRef
         }
         case MemberState.Follower => {
           sender ! ClientCommandResult(uid,cv.leaderId,"leaderId")
+          println(ClientCommandResult(uid,cv.leaderId,"leaderId"))
         }
         case MemberState.Candidate => {
           sender ! ClientCommandResult(uid,"i dont know","i dont know")
+          println(ClientCommandResult(uid,"i dont know","i dont know"))
         }
       }
 
