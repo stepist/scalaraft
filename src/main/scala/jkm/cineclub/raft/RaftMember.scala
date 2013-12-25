@@ -441,22 +441,35 @@ class LeaderSubActor(val memberId:RaftMemberId,val logEntryDB:LogEntryDB,val cv:
   var uid = util.Random.nextLong
   var lastLogIndex:Long=0
 
-  //var commitedIndex:Long= -1
 
   def init{
     timer.close
     nextIndex= 0
     sentedRPC=None
-    uid = util.Random.nextLong
+    //uid = util.Random.nextLong
     lastLogIndex=0
   }
 
 
+  def recvRpc{
+    sentedRPC=None
+  }
+
+  def rpc(prevLogIndex:Long, prevLogTerm:Long , entries:List[LogEntry] ,commitedIndex :Long ) {
+    uid=uid+7
+
+    val target=  context.actorSelection(cv.addressTable(memberId))
+    val rpc =  AppendEntriesRPC( RPCTo(uid,memberId),
+      cv.currentTerm ,cv.myId,prevLogIndex, prevLogTerm , entries ,commitedIndex )
+
+    target ! rpc
+    sentedRPC=Some(SentedRPC(uid,new Date().getTime))
+
+    timer.resetTimeout(cv.electionTimeout*0.5 millisecond)
+  }
 
    def snedRpc{
      if (sentedRPC.isEmpty | timer.isTimeout ) {
-       uid=uid+7
-
        val prevLogEntry = logEntryDB.getEntry(nextIndex-1).get
        val prevLogIndex = prevLogEntry.index
        val prevLogTerm = prevLogEntry.term
@@ -464,14 +477,7 @@ class LeaderSubActor(val memberId:RaftMemberId,val logEntryDB:LogEntryDB,val cv:
        val entry = logEntryDB.getEntry(nextIndex).getOrElse(null)
        val entries = if (entry==null) Nil else List(entry)
 
-       val target=  context.actorSelection(cv.addressTable(memberId))
-       val rpc =  AppendEntriesRPC( RPCTo(uid,memberId),
-         cv.currentTerm ,cv.myId,prevLogIndex, prevLogTerm , entries ,cv.commitedIndex )
-
-       target ! rpc
-       sentedRPC=Some(SentedRPC(uid,new Date().getTime))
-
-       timer.resetTimeout(cv.electionTimeout*0.5 millisecond)
+       rpc(prevLogIndex,prevLogTerm,entries,cv.commitIndex)
      }
    }
 
@@ -484,6 +490,7 @@ class LeaderSubActor(val memberId:RaftMemberId,val logEntryDB:LogEntryDB,val cv:
       nextIndex=lastLogIndex+1
       snedRpc
       context.become(handler)
+      sender ! "ok"
     }
   }
 
@@ -494,29 +501,28 @@ class LeaderSubActor(val memberId:RaftMemberId,val logEntryDB:LogEntryDB,val cv:
        sender ! "ok"
      }
 
-     case NewLastLogIndex(qlastLogIndex)  if lastLogIndex > nextIndex  =>  {
-       lastLogIndex=qlastLogIndex
+     case NewLastLogIndex(newlastLogIndex)  if newlastLogIndex > nextIndex  =>  {
+       lastLogIndex=newlastLogIndex
        snedRpc
      }
 
-     case AppendEntriesRPCResult(RPCFrom(uid,from),    term, success) => {
-       if ( memberId==from & sentedRPC.isDefined & sentedRPC.get.uid == uid) {
+     case AppendEntriesRPCResult(RPCFrom(uid,from),    term, success)  if  memberId==from  => {
+       if (sentedRPC.isDefined & sentedRPC.get.uid == uid) {
+         recvRpc
 
-         sentedRPC=None
-
-         if ( success ) {
-           context.parent ! AppendOkNoti(memberId,nextIndex )
-
-           if ( nextIndex < (lastLogIndex+1) ) {
-             nextIndex = nextIndex+1
-             snedRpc
+         success match {
+           case true => {
+             context.parent ! AppendOkNoti(memberId,nextIndex )
+             if ( nextIndex < (lastLogIndex+1) ) {
+               nextIndex = nextIndex+1
+               snedRpc
+             }
            }
-
-
-         } else {
-           if ( nextIndex >= 2) {
-             nextIndex=nextIndex-1
-             snedRpc
+           case false => {
+             if ( nextIndex >= 2) {
+               nextIndex=nextIndex-1
+               snedRpc
+             }
            }
          }
 
