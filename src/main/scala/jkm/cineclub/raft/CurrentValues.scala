@@ -1,7 +1,7 @@
 package jkm.cineclub.raft
 
 
-import jkm.cineclub.raft.RaftConfig.DBInfo
+import jkm.cineclub.raft.RaftConfig.{TcpAddress, DBInfo}
 
 /**
  * Created with IntelliJ IDEA.
@@ -59,6 +59,7 @@ class CurrentValues {
   var votedFor:RaftMemberId=null
 
   var addressTable:Map[RaftMemberId,AkkaAddress]=null
+  var addressTableRaw:Map[RaftMemberId,TcpAddress] =null
   var raftMembership:RaftMembership=null
 
   var lastIndex:Long= -1

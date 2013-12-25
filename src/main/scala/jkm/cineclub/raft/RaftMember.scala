@@ -59,12 +59,25 @@ class Timer(implicit val context:ActorContext,implicit val cv:CurrentValues) {
 }
 
 
-class RaftMember(val logEntryDB:LogEntryDB ,val persistentStateDB:PersistentStateDB,val cv:CurrentValues,val stateMachine:StateMachine)  extends Actor {
+import akka.actor.IndirectActorProducer
+
+class RaftMemberDependencyInjector(val raftCtx:RaftContext) extends IndirectActorProducer {
+  override def actorClass = classOf[Actor]  //RaftMember?
+  override def produce = {
+    new RaftMember(raftCtx)
+  }
+}
+class RaftMember(val raftCtx:RaftContext)  extends Actor with ActorLogging  {
 
   import RaftRPC._
 
+  implicit val logEntryDB:LogEntryDB = raftCtx.logEntryDB
+  implicit val persistentStateDB:PersistentStateDB = raftCtx.persistentStateDB
+  implicit val cv:CurrentValues = raftCtx.cv
+  implicit val stateMachine:StateMachine = raftCtx.stateMachine
 
-  val timer=new Timer()
+
+  val timer=new Timer
 
   def setCurrentTerm(currentTerm:Long) {
     val TermInfo(term,votedFor)=persistentStateDB.getTermInfo
@@ -201,6 +214,7 @@ class RaftMember(val logEntryDB:LogEntryDB ,val persistentStateDB:PersistentStat
   var voteList:List[RaftMemberId]=null
 
   def becomeCandidate() {
+    log.info("goto Candidate")
     context.become(candidateBehavior)
     cv.memberState=MemberState.Candidate
 
@@ -281,6 +295,7 @@ class RaftMember(val logEntryDB:LogEntryDB ,val persistentStateDB:PersistentStat
       }
 
       //kill LeaderSubActor
+      implicit val timeout = Timeout(10 millis)
       for (leaderSubActor <- leaderSubActorTable.values)  {
         val future=leaderSubActor ?  StopLeaderSubActor
         val result = Await.result(future,10 millis).asInstanceOf[String]
@@ -300,7 +315,7 @@ class RaftMember(val logEntryDB:LogEntryDB ,val persistentStateDB:PersistentStat
 
 
 
-  var clientCmdHandlerActor:ActorRef=null  // it is injected
+  //var clientCmdHandlerActor:ActorRef=null  // it is injected
   var leaderSubActorTable:Map[RaftMemberId,ActorRef]= null  // it is created when this actor's initialization  or when membership changed
 
 
@@ -354,14 +369,15 @@ class RaftMember(val logEntryDB:LogEntryDB ,val persistentStateDB:PersistentStat
     import akka.util.Timeout
     import scala.concurrent.Future
 
+    implicit val timeout = Timeout(20 millis)
     var futures:List[Future[Any]]= Nil
     for (leaderSubActor <- leaderSubActorTable.values)  {
       futures = futures  :+ leaderSubActor ?  StartLeaderSubActor(lastLogIndex)
     }
 
-    val initLeaderSubActorTimeoutVal=20 millis
-    for( future <- futures ) {
-      val result=Await.result(future,initLeaderSubActorTimeoutVal).asInstanceOf[String]
+    //val initLeaderSubActorTimeoutVal=20 millis
+    for( future:Future[Any] <- futures ) {
+      val result=Await.result(future,20 millis).asInstanceOf[String]
       if (result!="ok") throw new RuntimeException("fail to init LeaderSubActor")
     }
 
@@ -370,15 +386,19 @@ class RaftMember(val logEntryDB:LogEntryDB ,val persistentStateDB:PersistentStat
   }
 
   def createLeaderSubActors {
+    var leaderSubActorTable:Map[RaftMemberId,ActorRef]= Map[RaftMemberId,ActorRef]()
     for ( memberId <- cv.raftMembership.members if memberId != cv.myId ) {
       leaderSubActorTable = leaderSubActorTable + (memberId -> createLeaderSubActor(memberId))
     }
   }
 
   def createLeaderSubActor(memberId:RaftMemberId):ActorRef = {
+    log.info("createLeaderSubActor "+memberId)
     context.actorOf(
       Props(classOf[LeaderSubActorDependencyInjector], memberId,logEntryDB,cv),
       "leader_sub_"+memberId)
+
+
   }
 
 
@@ -460,10 +480,13 @@ class RaftMember(val logEntryDB:LogEntryDB ,val persistentStateDB:PersistentStat
   }
 
 
-
+  init
 
   def init {
+    log.info("init")
+    println("RaftMember init")
     createLeaderSubActors
+    timer.resetTimeout
   }
 
 }
@@ -477,7 +500,7 @@ class LeaderSubActorDependencyInjector(memberId:RaftMemberId,logEntryDB:LogEntry
   }
 }
 
-class LeaderSubActor(val memberId:RaftMemberId,val logEntryDB:LogEntryDB,val cv:CurrentValues) extends Actor {
+class LeaderSubActor(val memberId:RaftMemberId,implicit val logEntryDB:LogEntryDB,implicit val cv:CurrentValues) extends Actor with ActorLogging  {
   import RaftMemberLeader._
   import RaftRPC._
   import LeaderSubActor._
@@ -492,8 +515,11 @@ class LeaderSubActor(val memberId:RaftMemberId,val logEntryDB:LogEntryDB,val cv:
   var uid = util.Random.nextLong
   var lastLogIndex:Long=0
 
+  init
 
   def init{
+    log.info("init")
+    println("LeaderSubActor init")
     timer.close
     nextIndex= 0
     sentedRPC=None

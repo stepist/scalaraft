@@ -10,6 +10,7 @@ import binary._
 import scala.Some
 
 import java.util.Map
+import jkm.cineclub.raft.RaftConfig.DBInfo
 
 /**
  * Created with IntelliJ IDEA.
@@ -18,8 +19,11 @@ import java.util.Map
  * Time: 4:20 PM
  * To change this template use File | Settings | File Templates.
  */
-class LogEntryLevelDB(val dbName:String,val dbRootPath:String=null) extends LogEntryDB  {
+class LogEntryLevelDB(val dbInfo:DBInfo) extends LogEntryDB  {
   import LogEntryDB._
+
+  val dbName:String = dbInfo.dbName
+  val dbRootPath:String = dbInfo.dbRootPath
 
 
   val db :DB = factory.open(new File(dbRootPath,dbName), new Options())
@@ -132,7 +136,7 @@ object TestLogEntryLevelDB extends App{
   }
 
 
-  val levelDB:LogEntryDB= new LogEntryLevelDB(dbName)
+  val levelDB:LogEntryDB= new LogEntryLevelDB(DBInfo(dbName=dbName,dbRootPath = null))
 
   for(i <- 1 to 10) levelDB.appendEntry(LogEntry(i,i+1,"test"+i))
   for(i <- 1 to 10) println(levelDB.getEntry(i))

@@ -23,11 +23,21 @@ import jkm.cineclub.raft.StateMachine.Command
 import jkm.cineclub.raft.RaftConfig.TcpAddress
 
 
-class ClientCmdHandlerActor(val logEntryDB:LogEntryDB ,val cv:CurrentValues) extends Actor{
+class ClientCmdHandlerActorDependencyInjector(val raftCtx:RaftContext,val raftMemberActor:ActorRef) extends IndirectActorProducer {
+  override def actorClass = classOf[Actor]  //RaftMember?
+  override def produce = {
+    new ClientCmdHandlerActor(raftCtx,raftMemberActor)
+  }
+}
+
+class ClientCmdHandlerActor(val raftCtx:RaftContext,val raftMemberActor:ActorRef) extends Actor{
+
+  val logEntryDB:LogEntryDB = raftCtx.logEntryDB
+  val cv:CurrentValues = raftCtx.cv
 
   import ClientCmdHandlerActor._
 
-  val raftMemberActor:ActorRef=null
+
 
 
   def getLastIndex = {
@@ -39,6 +49,8 @@ class ClientCmdHandlerActor(val logEntryDB:LogEntryDB ,val cv:CurrentValues) ext
 
       cv.memberState match {
         case MemberState.Leader => {
+
+          implicit val timeout = Timeout(20 seconds)
 
           val future = raftMemberActor ? ClientCommand(uid,command)
           val result= Await.result(future,20 seconds).asInstanceOf[String]

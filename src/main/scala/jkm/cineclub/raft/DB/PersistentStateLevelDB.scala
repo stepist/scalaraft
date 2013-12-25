@@ -8,6 +8,7 @@ import jkm.cineclub.raft.PersistentState._
 
 import scala.pickling._
 import binary._
+import jkm.cineclub.raft.RaftConfig.DBInfo
 
 /**
  * Created with IntelliJ IDEA.
@@ -17,7 +18,10 @@ import binary._
  * To change this template use File | Settings | File Templates.
  */
 
-class PersistentStateLevelDB(val dbName:String,val dbRootPath:String=null) extends PersistentStateDB{
+class PersistentStateLevelDB(val dbInfo:DBInfo) extends PersistentStateDB{
+
+  val dbName:String = dbInfo.dbName
+  val dbRootPath:String = dbInfo.dbRootPath
 
   val db :DB = factory.open(new File(dbRootPath,dbName), new Options())
   implicit val writeOption=new WriteOptions().sync(true)

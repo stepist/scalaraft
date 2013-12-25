@@ -16,6 +16,8 @@ libraryDependencies ++= Seq(
 
 libraryDependencies += "com.typesafe" %% "scalalogging-slf4j" % "1.0.1"
 
+libraryDependencies += "ch.qos.logback" % "logback-classic" % "1.0.1"
+
 //libraryDependencies += "org.iq80.leveldb" % "leveldb-project" % "0.7-SNAPSHOT"
 
 libraryDependencies += "org.iq80.leveldb" % "leveldb" % "0.6"

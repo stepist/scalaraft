@@ -7,6 +7,7 @@ import java.io.File
 import org.iq80.leveldb.Options
 import jkm.cineclub.raft.DB.{PersistentStateLevelDB, PersistentStateDB}
 import jkm.cineclub.raft.PersistentState
+import jkm.cineclub.raft.RaftConfig.DBInfo
 
 
 /**
@@ -28,7 +29,7 @@ class PersistentStateDBSpec extends FlatSpec with Matchers {
   }
 
   def createLogEntryDB(dbName:String) : PersistentStateDB ={
-    new PersistentStateLevelDB(dbName)
+    new PersistentStateLevelDB(DBInfo(dbName=dbName,dbRootPath = null))
   }
 
 
