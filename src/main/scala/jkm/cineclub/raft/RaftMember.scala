@@ -147,8 +147,8 @@ class RaftMember(val raftCtx:RaftContext)  extends Actor with ActorLogging  {
       }
     }
     case AppendEntriesRPC(RPCTo(uid,to), term , leaderId,prevLogIndex, prevLogTerm , entries ,commitIndex ) => {
-
-      val isValidRPCReq = to==cv.myId & term > 0 & cv.raftMembership.contains(leaderId) & prevLogIndex >0 &  prevLogTerm>0 & commitIndex>0 & entries!=null
+      println("received "+AppendEntriesRPC(RPCTo(uid,to), term , leaderId,prevLogIndex, prevLogTerm , entries ,commitIndex ))
+      val isValidRPCReq = to==cv.myId & term > 0 & cv.raftMembership.contains(leaderId) & prevLogIndex >=0 &  prevLogTerm>=0 & commitIndex>=0 & entries!=null
 
       if (isValidRPCReq)
       term match {
@@ -162,20 +162,24 @@ class RaftMember(val raftCtx:RaftContext)  extends Actor with ActorLogging  {
           timer.resetTimeout
 
           val logEntrySome=logEntryDB.getEntry(prevLogIndex)
+          println("-------------")
 
           if (logEntrySome.isEmpty | logEntrySome.get.term != prevLogTerm) {
 
             sender ! AppendEntriesRPCResult(RPCFrom(uid,cv.myId),   cv.currentTerm,false)
+            println("-----------------")
 
           } else {
 
             if ( entries.size ==0 ) {
               sender ! AppendEntriesRPCResult(RPCFrom(uid,cv.myId),   cv.currentTerm,true)
+              println("-----------------")
             } else {
 
               if (entries.head != logEntrySome.get) logEntryDB.deleteFrom(prevLogIndex+1)
               logEntryDB.appendEntries(entries)
               sender ! AppendEntriesRPCResult(RPCFrom(uid,cv.myId),   cv.currentTerm,true)
+              println("-----------------")
 
 
 
@@ -187,6 +191,7 @@ class RaftMember(val raftCtx:RaftContext)  extends Actor with ActorLogging  {
 
           if ( lastAppliedIndex < cv.commitIndex )
           {
+            println("-----------------------------")
               for( index <-  (lastAppliedIndex+1) to cv.commitIndex)  {
                 val entry=logEntryDB.getEntry(index).get
                 stateMachine.applyEntry(entry)  // Async?
@@ -537,7 +542,7 @@ class LeaderSubActor(val memberId:RaftMemberId,implicit val logEntryDB:LogEntryD
 
   def init{
     log.info("init")
-    println("LeaderSubActor init")
+    println("LeaderSubActor init "+memberId)
     timer.close
     nextIndex= 0
     sentedRPC=None
@@ -556,6 +561,7 @@ class LeaderSubActor(val memberId:RaftMemberId,implicit val logEntryDB:LogEntryD
     val target=  context.actorSelection(cv.addressTable(memberId))
     val rpc =  AppendEntriesRPC( RPCTo(uid,memberId),
       cv.currentTerm ,cv.myId,prevLogIndex, prevLogTerm , entries ,commitedIndex )
+    println(rpc)
 
     target ! rpc
     sentedRPC=Some(SentedRPC(uid,new Date().getTime))
