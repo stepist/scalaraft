@@ -16,3 +16,12 @@ trait StateMachine {
   def applyEntries(logEntries:List[LogEntry]):String
   def getLastAppliedLogEntry:LogEntry
 }
+
+object StateMachine {
+  abstract class Command
+  abstract class CommandRet
+
+  //  uid 0~20 are predefined
+  //  uid 1 :  Membership change ..
+  // etc
+}

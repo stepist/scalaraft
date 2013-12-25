@@ -11,6 +11,7 @@ import jkm.cineclub.raft.PersistentState.TermInfo
  * To change this template use File | Settings | File Templates.
  */
 object PersistentState {
+  type RaftClusterId=String
   type RaftMemberId=String
   type MyId = RaftMemberId
 

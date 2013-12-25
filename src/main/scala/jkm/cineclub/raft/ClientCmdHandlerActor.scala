@@ -18,6 +18,9 @@ import akka.pattern.{AskTimeoutException, ask}
 import akka.util.Timeout
 import scala.concurrent.duration._
 import jkm.cineclub.raft.CurrentValues.MemberState
+import scala.Predef._
+import jkm.cineclub.raft.StateMachine.Command
+import jkm.cineclub.raft.RaftConfig.TcpAddress
 
 
 class ClientCmdHandlerActor(val logEntryDB:LogEntryDB ,val cv:CurrentValues) extends Actor{
@@ -45,7 +48,7 @@ class ClientCmdHandlerActor(val logEntryDB:LogEntryDB ,val cv:CurrentValues) ext
 
           result match {
             case "StepDown"  => sender ! ClientCommandResult(uid,"i dont know","i dont know")
-            case "Busy" =>
+            case "Busy" =>  sender ! ClientCommandResult(uid,"i dont know","busy")
             case ret:String => sender ! ClientCommandResult(uid,ret,"ok")
           }
 
@@ -62,9 +65,24 @@ class ClientCmdHandlerActor(val logEntryDB:LogEntryDB ,val cv:CurrentValues) ext
   }
 }
 
+class ClientAdminCmdHandlerActor extends Actor {    // it can be a routee..
+  import  ClientCmdHandlerActor._
+
+  def receive = {
+    case ClientCommandGetMembershipInfo(raftClutserId) =>
+  }
+}
 
 
 object ClientCmdHandlerActor {
-  case class ClientCommand(uid:Long,command:String)
-  case class ClientCommandResult(uid:Long,ret:String,code:String)
+  import StateMachine._
+
+  case class ClientCommandGetMembershipInfo(raftClutserId:RaftClusterId)
+  case class ClientCommandGetMembershipInfoResult(serviceAdresses:Map[RaftMemberId,TcpAddress])
+  case class ClientCommand(uid:Long,command:String )
+  case class ClientCommandResult(uid:Long,ret:String ,code:String)
+
+  //  uid 0~20 are predefined
+  //  uid 1 :  Membership change ..
+  // etc
 }
