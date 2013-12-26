@@ -13,8 +13,6 @@ package jkm.cineclub.raft
 import akka.actor.{ReceiveTimeout, ActorLogging, Actor, IndirectActorProducer}
 import jkm.cineclub.raft.PersistentState._
 import scala.Some
-import jkm.cineclub.raft.DB.LogEntryDB
-import jkm.cineclub.raft.DB.LogEntryDB.LogEntry
 import scala.concurrent.duration._
 
 class CandidateSubActorDependencyInjector(memberId:RaftMemberId,cv:CurrentValues) extends IndirectActorProducer {
@@ -69,7 +67,7 @@ class CandidateSubActor(val memberId:RaftMemberId,implicit val cv:CurrentValues)
       val rpc = RequestVoteRPC(RPCTo(uid,memberId),  cv.currentTerm,cv.myId ,lastLogIndex   ,lastLogTerm  )
 
       target ! rpc
-      sentedRPC=Some(SentedRPC(uid,System.currentTimeMillis()))
+      sentedRPC=Some(SentedRPC(uid,System.currentTimeMillis))
 
       resetTimeout
     }
@@ -89,7 +87,6 @@ class CandidateSubActor(val memberId:RaftMemberId,implicit val cv:CurrentValues)
     }
     case StopCandidateSubActor =>{
       init
-      context.become(initalState)
       sender ! "ok"
     }
   }
@@ -116,11 +113,11 @@ class CandidateSubActor(val memberId:RaftMemberId,implicit val cv:CurrentValues)
     }
   }
 
-  def receive = initalState
-
   override def preStart(): Unit={
     init
   }
+
+  def receive = initalState
 
 }
 

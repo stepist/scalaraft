@@ -200,6 +200,11 @@ class RaftMember(val raftCtx:RaftContext)  extends Actor with ActorLogging  {
             }
           }
 
+
+
+
+
+          // Applying LogEntries to StateMachine
           cv.commitIndex=commitIndex
           val lastAppliedIndex=stateMachine.getLastAppliedIndex
 
@@ -289,6 +294,7 @@ class RaftMember(val raftCtx:RaftContext)  extends Actor with ActorLogging  {
 
 
     // 5. Starting candidateSubActors
+    implicit val timeout = Timeout(50 millis)
     var futures:List[Future[Any]]=Nil
     for ( memberId <- cv.raftMembership.members if memberId != cv.myId ) {
       futures = futures :+ candidateSubActors(memberId) ?  StartCandidateSubActor(lastLogIndex=lastLogIndex,lastLogTerm=lastLogTerm)
@@ -304,6 +310,7 @@ class RaftMember(val raftCtx:RaftContext)  extends Actor with ActorLogging  {
     timer.close
 
     // 2. Stopping candidateSubActors
+    implicit val timeout = Timeout(50 millis)
     var futures:List[Future[Any]]=Nil
     for ( memberId <- cv.raftMembership.members if memberId != cv.myId ) {
       futures = futures :+ candidateSubActors(memberId) ?  StopCandidateSubActor
@@ -318,7 +325,7 @@ class RaftMember(val raftCtx:RaftContext)  extends Actor with ActorLogging  {
     case ReceiveTimeout => {
       timer.ifTimeouted(becomeCandidate)
     }
-    case RequestVoteRPCResult(RPCFrom(uid,from),     term, voteGranted) => {
+    case RequestVoteRPCResult(RPCFrom(uid,from),     term, voteGranted) if from != cv.myId => {
       if ( cv.raftMembership.contains(from) &   term >= cv.currentTerm) {
 
         if (term>cv.currentTerm) {

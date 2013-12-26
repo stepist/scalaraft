@@ -7,12 +7,16 @@ import scala.collection.JavaConversions._
 import org.iq80.leveldb._
 import org.iq80.leveldb.impl.Iq80DBFactory._
 import java.io.File
-import jkm.cineclub.raft.DB.{PersistentStateDB, LogEntryDB, LogEntryLevelDB, PersistentStateLevelDB}
+import jkm.cineclub.raft.DB._
 import jkm.cineclub.raft.PersistentState._
 import jkm.cineclub.raft.DB.LogEntryDB.LogEntry
 import com.typesafe.scalalogging.slf4j.Logging
 import akka.actor.{Inbox, Props, ActorSystem}
 import jkm.cineclub.raft.ClientCmdHandlerActor.ClientCommand
+import jkm.cineclub.raft.ClientCmdHandlerActor.ClientCommand
+import jkm.cineclub.raft.DB.LogEntryDB.LogEntry
+import jkm.cineclub.raft.RaftContext
+import jkm.cineclub.raft.PersistentState.TermInfo
 
 /**
  * Created with IntelliJ IDEA.
@@ -22,37 +26,25 @@ import jkm.cineclub.raft.ClientCmdHandlerActor.ClientCommand
  * To change this template use File | Settings | File Templates.
  */
 object  Raft extends App  with Logging{
-
   import RaftConfig._
 
-  def checkExistLevelDB(dbInfo:DBInfo):Boolean ={
-    val dbDir=new File(dbInfo.dbRootPath,dbInfo.dbName)
+  val raftMemberSystemName="raft"
+  val raftServiceSystemName="service"
+  val raftmemberActorName= "raftmember"
+  val clientCmdHandlerActorName="clientHandler"
 
-    if ( ! dbDir.exists() ) return false
 
-    if ( ! dbDir.isDirectory ) {
-      logger.error("Something's wrong with the Level DB Dir. It is not a directory "+dbInfo)
-      throw new RuntimeException("Something wrong with the Level DB Dir. It is not a directory "+dbInfo)
-    }
+  val raftDB:RaftDB=RaftLevelDB
 
-    if ( dbDir.listFiles().size == 0 ) return false
 
-    if (new File(dbInfo.dbRootPath,dbInfo.dbName+"/CURRENT").exists() & new File(dbInfo.dbRootPath,dbInfo.dbName+"/LOCK").exists() ) {
-      return  true
-    }
-    else {
-      logger.error("Something's wrong with the Level DB Dir. LevelDB Files are not proper. "+dbInfo)
-      throw new RuntimeException("Something wrong with the Level DB Dir. LevelDB Files are not proper. "+dbInfo)
-    }
-  }
 
   def initPersistentStateDB(raftConfig:RaftConfig)= {
     val dbInfo= raftConfig.persistentStateDBInfo
-    if (! checkExistLevelDB(dbInfo) ){
+    if (! raftDB.checkExistDB(dbInfo) ){
       logger.info("")
       logger.info("Create PersistentStateDB "+dbInfo)
       logger.info("")
-      val db = new PersistentStateLevelDB(dbInfo)
+      val db = raftDB.getPersistentStateDB(dbInfo)
 
       //db.putState(LastAppendedIndexDBKey,0)
       //db.putState(LastAppliedIndexDBKey,0)
@@ -68,11 +60,11 @@ object  Raft extends App  with Logging{
 
   def initLogEntryDB(raftConfig:RaftConfig) ={
     val dbInfo= raftConfig.logEntryDBInfo
-    if (! checkExistLevelDB(dbInfo) ){
+    if (! raftDB.checkExistDB(dbInfo) ){
       logger.info("")
       logger.info("Create LogEntryLevelDB "+dbInfo)
       logger.info("")
-      val logEntryLevelDB = new LogEntryLevelDB(dbInfo)
+      val logEntryLevelDB =raftDB.getLogEntryDB(dbInfo)
       logEntryLevelDB.appendEntry(LogEntry(0,0,"start raft"))
       logEntryLevelDB.close
     }
@@ -81,7 +73,7 @@ object  Raft extends App  with Logging{
 
   def checkMyID(raftConfig:RaftConfig)={
     val dbInfo= raftConfig.persistentStateDBInfo
-    val db = new PersistentStateLevelDB(dbInfo)
+    val db = raftDB.getPersistentStateDB(dbInfo)
     val myId=db.getState(MyIdDBKey).get
     db.close
 
@@ -101,7 +93,7 @@ object  Raft extends App  with Logging{
 
   def initCurrentValues(raftConfig:RaftConfig,currentValues:CurrentValues){
     val dbInfo= raftConfig.persistentStateDBInfo
-    val db = new PersistentStateLevelDB(dbInfo)
+    val db =raftDB.getPersistentStateDB(dbInfo)
 
 
     import jkm.cineclub.raft.CurrentValues
@@ -116,8 +108,9 @@ object  Raft extends App  with Logging{
     currentValues.votedFor = termInfo.votedFor
 
     //"akka.tcp://raft@127.0.0.1:3010/user/raftmember"
-    currentValues.addressTable=raftConfig.addressTable.map{ case (memberId,TcpAddress(ip,port))  => (memberId,"akka.tcp://raft@%s:%d/user/raftmember".format(ip,port))  }
+    currentValues.addressTable=raftConfig.addressTable.map{ case (memberId,TcpAddress(ip,port))  => (memberId,s"akka.tcp://raft@$ip:$port/user/$raftmemberActorName")  }
     currentValues.addressTableRaw=raftConfig.addressTable
+
 
 
     currentValues.raftMembership=db.getRaftMembership
@@ -152,9 +145,11 @@ object  Raft extends App  with Logging{
     currentValues.printCurrentValues
     println()
 
+
+
     implicit val raftCxt=RaftContext(
-      logEntryDB = new LogEntryLevelDB(currentValues.logEntryDBInfo),
-      persistentStateDB = new PersistentStateLevelDB(currentValues.persistentStateDBInfo),
+      logEntryDB = raftDB.getLogEntryDB(currentValues.logEntryDBInfo),
+      persistentStateDB = raftDB.getPersistentStateDB(currentValues.persistentStateDBInfo) ,
       cv=currentValues,
       stateMachine = new DummyStateMachine(DBInfo(dbName =currentValues.logEntryDBInfo.dbName+".Statemachine" ,dbRootPath = null))
     )
@@ -162,29 +157,27 @@ object  Raft extends App  with Logging{
     val address=currentValues.addressTableRaw.get(currentValues.myId).get
 
     println(address)
-    val raftMemberSystem = ActorSystem("raft",
+    val raftMemberSystem = ActorSystem(raftMemberSystemName,
 
       ConfigFactory.parseString("akka.remote.netty.tcp{ hostname=\""+address.hostname +"\", port="+address.port+" }")
         .withFallback(ConfigFactory.load())
     )
 
 
-
-
-
-    val raftServiceSystem= ActorSystem("service",
+    val raftServiceSystem= ActorSystem(raftServiceSystemName,
 
       ConfigFactory.parseString("akka.remote.netty.tcp{ hostname=\""+config.serviceAddress.hostname +"\", port="+config.serviceAddress.port+" }")
         .withFallback(ConfigFactory.load())
     )
 
+
     val raftmemberActor = raftMemberSystem.actorOf(
       Props(classOf[RaftMemberDependencyInjector], raftCxt),
-      "raftmember")
+      raftmemberActorName)
 
     val clientCmdHandlerActor = raftServiceSystem.actorOf(
       Props(classOf[ClientCmdHandlerActorDependencyInjector], raftCxt,raftmemberActor),
-      "clientHandler")
+      clientCmdHandlerActorName)
   }
 
   import jkm.cineclub.raft.CurrentValues
@@ -207,7 +200,7 @@ object  Raft extends App  with Logging{
   implicit val testSystem=ActorSystem("testSystem")
 
   //implicit val i = inbox()
-  val target=testSystem.actorSelection(  "akka.tcp://service@127.0.0.1:3553/user/clientHandler" )
+  val target=testSystem.actorSelection(  s"akka.tcp://$raftServiceSystemName@127.0.0.1:3553/user/$clientCmdHandlerActorName" )
   println
   println
   println
@@ -237,78 +230,3 @@ object  Raft extends App  with Logging{
 case class RaftContext(val logEntryDB:LogEntryDB, val persistentStateDB:PersistentStateDB, val  cv:CurrentValues , val stateMachine:StateMachine)
 
 
-class RaftConfig {
-  import RaftConfig._
-  var id:RaftMemberId=null
-  var serviceAddress:TcpAddress=null
-
-  var persistentStateDBInfo:DBInfo=null
-  var logEntryDBInfo:DBInfo=null
-
-  var membership:RaftMembership=null
-  var addressTable:Map[RaftMemberId,TcpAddress]=null
-
-  var electionTimeout:Int = -1
-}
-object RaftConfig {
-  case class TcpAddress(hostname:String,port:Int)
-  case class DBInfo(dbName:String,dbRootPath:String) {
-    override def toString=  "("+"dbName="+dbName+","+"dbRootPath="+dbRootPath+")"
-  }
-
-  def convertToTcpAddress(a:ConfigValue): TcpAddress= {
-    val address=a.unwrapped().asInstanceOf[java.util.ArrayList[Object]].toList
-    val hostname=address(0).asInstanceOf[String]
-    val port = address(1).asInstanceOf[Int]
-    TcpAddress(hostname,port)
-  }
-
-  implicit def convertConfigToTcpAddress(a:Config): TcpAddress= {
-    val hostname=a.getString("hostname")
-    val port = a.getInt("port")
-    TcpAddress(hostname,port)
-  }
-
-  implicit def convertConfigToDBInfo(a:Config):DBInfo = {
-    val dbName=a.getString("dbName")
-    var dbRootPath=a.getString("rootPath")
-    if (dbRootPath.isEmpty) dbRootPath=null
-    DBInfo(dbName,dbRootPath)
-  }
-
-  def getRaftMembership(a:Config):RaftMembership={
-    RaftMembership(
-      RaftMembership.getConfigType(a.getString("configType")),
-      a.getStringList("newMembers").toList ,
-      a.getStringList("oldMembers").toList )
-  }
-
-  def readConfig(configName:String,prefix:String):RaftConfig ={
-    val conf=ConfigFactory.load(configName)
-    if (conf==null) return null
-
-    val raftConfig=new RaftConfig
-
-    def addPrefix(path:String) =prefix+"."+ path
-
-    raftConfig.id=conf.getString(addPrefix("id"))
-    raftConfig.serviceAddress=conf.getConfig(addPrefix("serviceAddress"))
-    raftConfig.persistentStateDBInfo=conf.getConfig(addPrefix("persistentStateDB"))
-    raftConfig.logEntryDBInfo=conf.getConfig(addPrefix("logEntryDB"))
-    raftConfig.membership=getRaftMembership(conf.getConfig(addPrefix("init.membership")))
-    raftConfig.addressTable=conf.getConfig(addPrefix("init.addressTable")).entrySet().toList.map( x=> (x.getKey,convertToTcpAddress(x.getValue))).toMap
-    raftConfig.electionTimeout=conf.getInt( addPrefix("init.electionTimeout"))
-    raftConfig
-  }
-
-  def printRaftConfig(raftConfig:RaftConfig) ={
-    println("id="+raftConfig.id)
-    println("serverAddress="+raftConfig.serviceAddress)
-    println("persistentStateDBInfo="+raftConfig.persistentStateDBInfo)
-    println("logEntryDBInfo="+raftConfig.logEntryDBInfo)
-    println("members="+raftConfig.membership)
-    println("addressTable="+raftConfig.addressTable)
-    println("electionTimeout="+raftConfig.electionTimeout)
-  }
-
-}
