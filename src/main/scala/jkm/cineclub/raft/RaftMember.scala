@@ -195,8 +195,9 @@ class RaftMember(val raftCtx:RaftContext)  extends Actor with ActorLogging  {
 
           if ( lastAppliedIndex < cv.commitIndex )
           {
+            val lastLogIndex = logEntryDB.getLastIndex().get
             println("-----------------------------")
-              for( index <-  (lastAppliedIndex+1) to cv.commitIndex)  {
+              for( index <-  (lastAppliedIndex+1) to cv.commitIndex   if index <= lastLogIndex)  {
                 val entry=logEntryDB.getEntry(index).get
                 stateMachine.applyEntry(entry)  // Async?
               }
@@ -312,7 +313,7 @@ class RaftMember(val raftCtx:RaftContext)  extends Actor with ActorLogging  {
 
     if (cv.memberState==MemberState.Leader ) {
       if ( nowInOperation ){
-        tempCmdSendingAgentActor ! "StepDown"
+        tempCmdSendingAgentActor ! ClientCommandResult(lastClientCommandUid,null,"stepdown")
         nowInOperation=false
         tempCmdSendingAgentActor=null
       }
@@ -338,7 +339,7 @@ class RaftMember(val raftCtx:RaftContext)  extends Actor with ActorLogging  {
 
 
 
-  //var clientCmdHandlerActor:ActorRef=null  // it is injected
+
   var leaderSubActorTable:Map[RaftMemberId,ActorRef]= null  // it is created when this actor's initialization  or when membership changed
 
 
@@ -460,17 +461,20 @@ class RaftMember(val raftCtx:RaftContext)  extends Actor with ActorLogging  {
       println("---------------------------------------------------------------")
       println("---------------------------------------------------------------")
       if (nowInOperation) {
-        sender ! "Busy"
+        sender ! ClientCommandResult(uid,null,"busy")
       } else {
 
         lastClientCommandUid=uid
         nowInOperation=true
         tempCmdSendingAgentActor=sender
 
+
+        lastLogIndex = lastLogIndex+1
         newLogEntry =LogEntry(lastLogIndex,cv.currentTerm,command)
+        println("newLogEntry="+newLogEntry)
         logEntryDB.appendEntry(newLogEntry)
 
-        lastLogIndex=logEntryDB.getLastIndex().get
+        //lastLogIndex=logEntryDB.getLastIndex().get
 
         for( leaderSubActor <-leaderSubActorTable.values)  leaderSubActor ! NewLastLogIndex(lastLogIndex)
       }
@@ -505,7 +509,7 @@ class RaftMember(val raftCtx:RaftContext)  extends Actor with ActorLogging  {
         isAtLeastOneEntryOfThisTermCommited=true
         val ret=stateMachine.applyEntry(newLogEntry)
 
-        tempCmdSendingAgentActor ! ClientCommandResult(lastClientCommandUid,ret,"code")
+        tempCmdSendingAgentActor ! ClientCommandResult(lastClientCommandUid,ret,"ok")
         tempCmdSendingAgentActor=null
         nowInOperation=false
       }
@@ -514,10 +518,20 @@ class RaftMember(val raftCtx:RaftContext)  extends Actor with ActorLogging  {
     }
 
   }
-
+  import PersistentState._
   def getLastCommitedIndex(table:MutableMap[RaftMemberId,Option[Long]]):Long={
-    //cv.raftMembership.checkMajority()
-    4//Todo !!!!!!!!!
+    cv.raftMembership.configType match {
+      case RaftMembership.RaftMembershipConfigNormal => {
+        cv.raftMembership.newMembers.filter(_!=cv.myId).map(table(_)).map(_.getOrElse(-1.toLong)).min
+      }
+      case RaftMembership.RaftMembershipConfigJoint => {
+        math.min(
+          cv.raftMembership.newMembers.filter(_!=cv.myId).map(table(_)).map(_.getOrElse(-1.toLong)).min,
+          cv.raftMembership.oldMembers.filter(_!=cv.myId).map(table(_)).map(_.getOrElse(-1.toLong)).min
+        )
+      }
+      case _ => -1
+    }
   }
 
 
@@ -547,6 +561,8 @@ class LeaderSubActor(val memberId:RaftMemberId,implicit val logEntryDB:LogEntryD
   import LeaderSubActor._
   import java.util.Date
 
+
+  val debugHeader=s"${cv.myId} : LeaderSubActor : ${memberId} : "
   type RPCUid = Long
 
   case class SentedRPC(uid:RPCUid,sentedTime:Long)
@@ -579,7 +595,8 @@ class LeaderSubActor(val memberId:RaftMemberId,implicit val logEntryDB:LogEntryD
     val target=  context.actorSelection(cv.addressTable(memberId))
     val rpc =  AppendEntriesRPC( RPCTo(uid,memberId),
       cv.currentTerm ,cv.myId,prevLogIndex, prevLogTerm , entries ,commitedIndex )
-    println("send    "+rpc)
+    println(debugHeader+"send    "+rpc)
+    println(debugHeader+s"lastLogIndex= $lastLogIndex  nextIndex=$nextIndex")
 
     target ! rpc
     sentedRPC=Some(SentedRPC(uid,new Date().getTime))
@@ -620,32 +637,35 @@ class LeaderSubActor(val memberId:RaftMemberId,implicit val logEntryDB:LogEntryD
        sender ! "ok"
      }
 
-     case NewLastLogIndex(newlastLogIndex)  if newlastLogIndex > nextIndex  =>  {
+     case NewLastLogIndex(newlastLogIndex)  if newlastLogIndex >= nextIndex  =>  {
        lastLogIndex=newlastLogIndex
        snedRpc
      }
 
      case AppendEntriesRPCResult(RPCFrom(uid,from),    term, success)  if  memberId==from  => {
-       println("received  "+AppendEntriesRPCResult(RPCFrom(uid,from),    term, success))
+       println(debugHeader+"received  "+AppendEntriesRPCResult(RPCFrom(uid,from),    term, success))
        if (sentedRPC.isDefined & sentedRPC.get.uid == uid) {
          recvRpc
+         println(debugHeader+"a")
 
          success match {
            case true => {
              context.parent ! AppendOkNoti(memberId,nextIndex )
              if ( nextIndex < (lastLogIndex+1) ) {
                nextIndex = nextIndex+1
+               println(debugHeader+"b")
                snedRpc
              }
            }
            case false => {
              if ( nextIndex >= 2) {
                nextIndex=nextIndex-1
+               println(debugHeader+"c")
                snedRpc
              }
            }
          }
-
+         println(debugHeader+"d")
          timer.resetTimeout(cv.electionTimeout*0.5 millisecond)
 
        }

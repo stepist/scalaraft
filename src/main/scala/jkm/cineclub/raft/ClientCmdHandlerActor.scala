@@ -45,6 +45,7 @@ class ClientCmdHandlerActor(val raftCtx:RaftContext,val raftMemberActor:ActorRef
   }
 
   def receive ={
+
     case ClientCommand(uid,command) => {
       println(ClientCommand(uid,command))
 
@@ -54,15 +55,15 @@ class ClientCmdHandlerActor(val raftCtx:RaftContext,val raftMemberActor:ActorRef
           implicit val timeout = Timeout(20 seconds)
 
           val future = raftMemberActorSelection ? ClientCommand(uid,command)
-          val result= Await.result(future,20 seconds).asInstanceOf[String]
+          val clientCommandResult = Await.result(future,20 seconds).asInstanceOf[ClientCommandResult]
 
           // when timeout ,
           // catch  Exception
 
-          result match {
-            case "StepDown"  => sender ! ClientCommandResult(uid,"i dont know","i dont know")
-            case "Busy" =>  sender ! ClientCommandResult(uid,"i dont know","busy")
-            case ret:String => sender ! ClientCommandResult(uid,ret,"ok")
+          clientCommandResult.code match {
+            case "stepdown"  => sender ! ClientCommandResult(clientCommandResult.uid,null,"chaos")
+            case "Busy" =>  sender ! ClientCommandResult(clientCommandResult.uid,null,"busy")
+            case "ok" => sender ! ClientCommandResult(clientCommandResult.uid,clientCommandResult.ret,"ok")
           }
 
         }
@@ -71,8 +72,8 @@ class ClientCmdHandlerActor(val raftCtx:RaftContext,val raftMemberActor:ActorRef
           println(ClientCommandResult(uid,cv.leaderId,"leaderId"))
         }
         case MemberState.Candidate => {
-          sender ! ClientCommandResult(uid,"i dont know","i dont know")
-          println(ClientCommandResult(uid,"i dont know","i dont know"))
+          sender ! ClientCommandResult(uid,null,"chaos")
+          println(ClientCommandResult(uid,null,"chaos"))
         }
       }
 
