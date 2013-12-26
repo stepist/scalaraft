@@ -13,13 +13,14 @@ import jkm.cineclub.raft.DB.{PersistentStateDB, LogEntryDB}
 import LogEntryDB._
 import akka.actor._
 import scala.concurrent.duration._
-import scala.concurrent.Await
+import scala.concurrent.{Future, Await}
 import akka.pattern.{AskTimeoutException, ask}
 import akka.util.Timeout
 import scala.concurrent.duration._
 import jkm.cineclub.raft.CurrentValues.MemberState
 import jkm.cineclub.raft.ClientCmdHandlerActor.{ClientCommandResult, ClientCommand}
 import akka.actor.Actor.Receive
+import jkm.cineclub.raft.CandidateSubActor.{StopCandidateSubActor, VoteResult, StartCandidateSubActor}
 
 class Timer(implicit val context:ActorContext) {
 
@@ -98,6 +99,30 @@ class RaftMember(val raftCtx:RaftContext)  extends Actor with ActorLogging  {
 
 
 
+  /********************************
+           RPC
+    ********************************/
+
+  def targetMember(memberId:RaftMemberId):ActorSelection = context.actorSelection(cv.addressTable(memberId))
+
+  def sendRequestVoteRPC(memberId:RaftMemberId,rpc:RequestVoteRPC )= {
+    targetMember(memberId) ! rpc
+  }
+
+  def sendRequestVoteRPCResult(memberId:RaftMemberId, rpc:RequestVoteRPCResult ) = {
+    targetMember(memberId) ! rpc
+  }
+
+
+
+
+
+
+
+
+  /********************************
+           RPC Handling
+   ********************************/
 
   def isLocalLogMoreCompleteThanCandidate(cLastLogIndex:Long,cLastLogTerm:Long):Boolean={
     val LogEntry(vLastLogIndex,vLastLogTerm,_)=logEntryDB.getLast().get
@@ -105,23 +130,16 @@ class RaftMember(val raftCtx:RaftContext)  extends Actor with ActorLogging  {
   }
 
 
-
   def rpcHandlerBehavior :Receive = {
     case RequestVoteRPC(RPCTo(uid,to), term,candidateId ,lastLogIndex  ,lastLogTerm ) => {
-      println("RequestVoteRPC Receive "+candidateId+"  ->  "+to +"     "+RequestVoteRPC(RPCTo(uid,to), term,candidateId ,lastLogIndex  ,lastLogTerm ))
-      println("(to,cv.myId)  =" +(to,cv.myId) +" "+(to==cv.myId) )
-      println("cv.raftMembership.contains(candidateId)="+cv.raftMembership.contains(candidateId))
 
       val isValidRPCReq = to==cv.myId & term > 0 & cv.raftMembership.contains(candidateId) & lastLogIndex >=0 &  lastLogTerm>=0
-      println("isValidRPCReq="+isValidRPCReq)
-
       if (isValidRPCReq)
       term match {
-        case a if a < cv.currentTerm => sender ! RequestVoteRPCResult(RPCFrom(uid,cv.myId),   cv.currentTerm,false)
+        case a if a < cv.currentTerm => {
+          sendRequestVoteRPCResult(candidateId, RequestVoteRPCResult(RPCFrom(uid,cv.myId),   cv.currentTerm,false))
+        }
         case _ => {
-
-
-
           if ( term > cv.currentTerm ) {
             setCurrentTerm(term)
             stepDown //?
@@ -132,12 +150,10 @@ class RaftMember(val raftCtx:RaftContext)  extends Actor with ActorLogging  {
 
           if ( isCandidateProper ) {
             setVotedFor(candidateId)
-            sender ! RequestVoteRPCResult(RPCFrom(uid,cv.myId), cv.currentTerm,true)
-            println(RequestVoteRPCResult(RPCFrom(uid,cv.myId), cv.currentTerm,true))
+            sendRequestVoteRPCResult(candidateId,RequestVoteRPCResult(RPCFrom(uid,cv.myId), cv.currentTerm,true))
             timer.resetTimeout(cv.electionTimeout millis)
           }else{
-            sender ! RequestVoteRPCResult(RPCFrom(uid,cv.myId), cv.currentTerm,false)
-            println(RequestVoteRPCResult(RPCFrom(uid,cv.myId), cv.currentTerm,false))
+            sendRequestVoteRPCResult(candidateId,RequestVoteRPCResult(RPCFrom(uid,cv.myId), cv.currentTerm,false))
           }
 
         }
@@ -205,14 +221,11 @@ class RaftMember(val raftCtx:RaftContext)  extends Actor with ActorLogging  {
   }
 
 
+  /**********************************************
 
+       Follower State
 
-  def followerBehavior :Receive = rpcHandlerBehavior orElse {
-    case ReceiveTimeout => {
-      timer.ifTimeouted(becomeCandidate)
-    }
-  }
-
+    ************************************************/
 
 
   def intoFollowerState={
@@ -226,14 +239,32 @@ class RaftMember(val raftCtx:RaftContext)  extends Actor with ActorLogging  {
 
     // 3. Timeout Update
     timer.resetTimeout(cv.electionTimeout millis)
-
   }
 
   def outofFollowerState ={
     timer.close
   }
 
+  def followerBehavior :Receive = rpcHandlerBehavior orElse {
+    case ReceiveTimeout => {
+      timer.ifTimeouted(becomeCandidate)
+    }
+  }
 
+
+
+
+
+
+
+  /**********************************************
+
+       Candidate State
+
+  ************************************************/
+
+
+  var voteList:List[RaftMemberId]=null
   def intoCandidateState = {
     // 1.State Change
     log.info("into Candidate")
@@ -249,63 +280,36 @@ class RaftMember(val raftCtx:RaftContext)  extends Actor with ActorLogging  {
     timer.resetTimeout(cv.electionTimeout*(1.0+Random.nextFloat*0.6)  millis)
 
 
+    // 4. Init Values
     val lastLogEntry= logEntryDB.getLast().get
     val lastLogIndex = lastLogEntry.index
     val lastLogTerm = lastLogEntry.term
-
-    requestVoteRPCUidTable= Map[RaftMemberId,Long]()
     voteList=List[RaftMemberId]()
 
 
+    // 5. Starting candidateSubActors
+    var futures:List[Future[Any]]=Nil
     for ( memberId <- cv.raftMembership.members if memberId != cv.myId ) {
-      requestVoteRPCUID += 3
-      requestVoteRPCUidTable = requestVoteRPCUidTable + (memberId -> requestVoteRPCUID)
-      val rpc = RequestVoteRPC(RPCTo(requestVoteRPCUID,memberId),  cv.currentTerm,cv.myId ,lastLogIndex   ,lastLogTerm  )
-      sendRequestVoteRPC(memberId,rpc)
+      futures = futures :+ candidateSubActors(memberId) ?  StartCandidateSubActor(lastLogIndex=lastLogIndex,lastLogTerm=lastLogTerm)
+    }
+    for( future <- futures ) {
+      val result = Await.result(future,50 millis).asInstanceOf[String]
+      if (result!="ok") throw new RuntimeException("candidateSubActors start failed")
     }
   }
 
-  def sendRequestVoteRPC(memberId:RaftMemberId,rpc:RequestVoteRPC )= {
-    context.actorSelection(cv.addressTable(memberId)) ! rpc
-  }
+  def outofCandidateState={
+    // 1. Timer close
+    timer.close
 
-
-
-
-
-
-
-
-
-
-  var requestVoteRPCUidTable:Map[RaftMemberId,Long]=null
-  var requestVoteRPCUID:Long = util.Random.nextLong()
-  var voteList:List[RaftMemberId]=null
-
-  def becomeCandidate() {
-    log.info("goto Candidate")
-    context.become(candidateBehavior)
-    cv.memberState=MemberState.Candidate
-
-    setCurrentTerm(cv.currentTerm+1)
-    setVotedFor(cv.myId)
-
-    import util.Random
-    timer.resetTimeout(cv.electionTimeout*(1.0+Random.nextFloat*0.6)  millis)
-
-    val lastLogEntrySome= logEntryDB.getLast()
-    val lastLogIndex = lastLogEntrySome.get.index
-    val lastLogTerm = lastLogEntrySome.get.term
-
-    requestVoteRPCUidTable= Map[RaftMemberId,Long]()
-    voteList=List[RaftMemberId]()
-
-
+    // 2. Stopping candidateSubActors
+    var futures:List[Future[Any]]=Nil
     for ( memberId <- cv.raftMembership.members if memberId != cv.myId ) {
-        requestVoteRPCUID += 3
-        requestVoteRPCUidTable = requestVoteRPCUidTable + (memberId -> requestVoteRPCUID)
-        context.actorSelection(cv.addressTable(memberId)) ! RequestVoteRPC(RPCTo(requestVoteRPCUID,memberId),  cv.currentTerm,cv.myId ,lastLogIndex   ,lastLogTerm  )
-        println("RequestVoteRPC Send to "+ cv.addressTable(memberId) +"    "+cv.myId+"  ->  "+memberId +"      "+RequestVoteRPC(RPCTo(requestVoteRPCUID,memberId),  cv.currentTerm,cv.myId ,lastLogIndex   ,lastLogTerm  ))
+      futures = futures :+ candidateSubActors(memberId) ?  StopCandidateSubActor
+    }
+    for( future <- futures ) {
+      val result = Await.result(future,50 millis).asInstanceOf[String]
+      if (result!="ok") throw new RuntimeException("candidateSubActors stop failed")
     }
   }
 
@@ -314,23 +318,62 @@ class RaftMember(val raftCtx:RaftContext)  extends Actor with ActorLogging  {
       timer.ifTimeouted(becomeCandidate)
     }
     case RequestVoteRPCResult(RPCFrom(uid,from),     term, voteGranted) => {
-      if ( cv.raftMembership.contains(from) &  requestVoteRPCUidTable(from) == uid & term >= cv.currentTerm) {
+      if ( cv.raftMembership.contains(from) &   term >= cv.currentTerm) {
 
-         if (term>cv.currentTerm) {
-           setCurrentTerm(term)
-           stepDown
-         }
-         else  {
-           if (voteGranted) {
-             if ( ! voteList.contains(from) ) voteList=voteList :+ from
-           }
-         }
+        if (term>cv.currentTerm) {
+          setCurrentTerm(term)
+          stepDown
+        }
+        else  {
+          candidateSubActors(from) ! RequestVoteRPCResult(RPCFrom(uid,from),     term, voteGranted)
+        }
       }
+    }
 
-      if ( voteList.size >= cv.raftMembership.getMajoritySize) becomeLeader
-
+    case VoteResult(memberId,voteGranted ) => {
+      if (voteGranted) {
+        if ( ! voteList.contains(memberId) ) voteList=voteList :+ memberId
+      }
+      if ( cv.raftMembership.checkMajority(voteList.toSet)) becomeLeader
     }
   }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  def outof() ={
+    cv.memberState match {
+      case MemberState.Follower => outofFollowerState
+      case MemberState.Leader => outofLeaderState
+      case MemberState.Candidate => outofCandidateState
+    }
+  }
+
+
+
+  def becomeCandidate() {
+    outof
+    intoCandidateState
+  }
+
+
 
 
 
@@ -481,6 +524,32 @@ class RaftMember(val raftCtx:RaftContext)  extends Actor with ActorLogging  {
       "leader_sub_"+memberId)
 
 
+  }
+
+  var candidateSubActors:MutableMap[RaftMemberId,ActorRef]=MutableMap[RaftMemberId,ActorRef]()
+
+  def createCandidateSubActors {
+    updateCandidateSubActors
+  }
+
+  def updateCandidateSubActors {
+    for ( memberId <- cv.raftMembership.members if memberId != cv.myId & !candidateSubActors.contains(memberId) ) {
+      candidateSubActors.put(memberId , createCandidateSubActor(memberId))
+    }
+
+    var deletedMembers:List[RaftMemberId]=Nil
+    for( memberId <- candidateSubActors.keys if !cv.raftMembership.members.contains(memberId) ){
+      candidateSubActors.get(memberId).get ! PoisonPill
+      deletedMembers = deletedMembers :+ memberId
+    }
+
+    deletedMembers.foreach(candidateSubActors.remove(_))
+  }
+
+  def createCandidateSubActor(memberId:RaftMemberId):ActorRef = {
+    context.actorOf(
+      Props(classOf[CandidateSubActorDependencyInjector], memberId,cv),
+      "candidate_sub_"+memberId)
   }
 
 
