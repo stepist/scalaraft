@@ -2,20 +2,12 @@ package jkm.cineclub.raft
 
 
 import com.typesafe.config.{ConfigValue, ConfigList, ConfigFactory, Config}
-import jkm.cineclub.raft.PersistentState.RaftMemberId
-import scala.collection.JavaConversions._
-import org.iq80.leveldb._
-import org.iq80.leveldb.impl.Iq80DBFactory._
-import java.io.File
 import jkm.cineclub.raft.DB._
 import jkm.cineclub.raft.PersistentState._
-import jkm.cineclub.raft.DB.LogEntryDB.LogEntry
 import com.typesafe.scalalogging.slf4j.Logging
 import akka.actor.{Inbox, Props, ActorSystem}
 import jkm.cineclub.raft.ClientCmdHandlerActor.ClientCommand
-import jkm.cineclub.raft.ClientCmdHandlerActor.ClientCommand
 import jkm.cineclub.raft.DB.LogEntryDB.LogEntry
-import jkm.cineclub.raft.RaftContext
 import jkm.cineclub.raft.PersistentState.TermInfo
 
 /**
