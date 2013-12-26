@@ -21,7 +21,6 @@ import jkm.cineclub.raft.CurrentValues.MemberState
 import jkm.cineclub.raft.ClientCmdHandlerActor.{ClientCommandResult, ClientCommand}
 
 class Timer(implicit val context:ActorContext,implicit val cv:CurrentValues) {
-  import java.util.Date
 
   val guard=1.1
   var requestedTime:Long = 0
@@ -29,28 +28,32 @@ class Timer(implicit val context:ActorContext,implicit val cv:CurrentValues) {
 
   def resetTimeout={
     timeout=cv.electionTimeout.millis
-    requestedTime=new Date().getTime
+    requestedTime=System.currentTimeMillis()
     context.setReceiveTimeout(timeout*guard)
   }
 
   def resetTimeout(a:Duration = cv.electionTimeout.millis)={
     timeout=a
-    requestedTime=new Date().getTime
+    requestedTime=System.currentTimeMillis()
     context.setReceiveTimeout(timeout*guard)
   }
 
   def isTimeout:Boolean ={
-    val elapsedTime= new Date().getTime - requestedTime
+    if (isClosed) return false
+    val elapsedTime= System.currentTimeMillis() - requestedTime
     elapsedTime.millis  >= timeout
   }
 
   def ifTimeout(exec:() => Unit) {
-    val elapsedTime= new Date().getTime - requestedTime
+    if (!isClosed) {
+        val elapsedTime= System.currentTimeMillis() - requestedTime
 
-    if (elapsedTime.millis  >= timeout) exec()
-    else resetTimeout(timeout - elapsedTime.millis)
+        if (elapsedTime.millis  >= timeout) exec()
+        else resetTimeout(timeout - elapsedTime.millis)
+    }
   }
 
+  def isClosed = (timeout == Duration.Undefined & requestedTime==0)
   def close= {
     requestedTime = 0
     timeout = Duration.Undefined
@@ -559,7 +562,6 @@ class LeaderSubActor(val memberId:RaftMemberId,implicit val logEntryDB:LogEntryD
   import RaftMemberLeader._
   import RaftRPC._
   import LeaderSubActor._
-  import java.util.Date
 
 
   val debugHeader=s"${cv.myId} : LeaderSubActor : ${memberId} : "
@@ -599,7 +601,7 @@ class LeaderSubActor(val memberId:RaftMemberId,implicit val logEntryDB:LogEntryD
     println(debugHeader+s"lastLogIndex= $lastLogIndex  nextIndex=$nextIndex")
 
     target ! rpc
-    sentedRPC=Some(SentedRPC(uid,new Date().getTime))
+    sentedRPC=Some(SentedRPC(uid,System.currentTimeMillis()))
 
     timer.resetTimeout(cv.electionTimeout*0.5 millisecond)
   }
