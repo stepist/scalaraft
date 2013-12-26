@@ -2,6 +2,7 @@ package jkm.cineclub.raft
 
 
 import jkm.cineclub.raft.RaftConfig.{TcpAddress, DBInfo}
+import akka.actor.ActorRef
 
 /**
  * Created with IntelliJ IDEA.
@@ -62,7 +63,7 @@ class CurrentValues {
   var addressTableRaw:Map[RaftMemberId,TcpAddress] =null
   var raftMembership:RaftMembership=null
 
-  var lastIndex:Long= -1
+  //var lastIndex:Long= -1
 
   var persistentStateDBInfo:DBInfo=null
   var logEntryDBInfo:DBInfo=null
@@ -70,6 +71,8 @@ class CurrentValues {
   var electionTimeout:Int= -1
 
   var commitIndex:Long = -1
+
+  var leaderSubActorTable:Map[RaftMemberId,ActorRef]= null
 
 
   def printCurrentValues={
